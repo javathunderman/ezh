@@ -1,0 +1,17 @@
+## Clang-based Software Hint Insertion
+
+### Building
+Prequisites: You must have `clang`, including `clang-dev` and `llvm` installed (these are both installable via `apt`). We used `llvm-18` for development, though any modern release should work. 
+
+`mkdir build`
+
+`cd build`
+
+`cmake ..`
+
+`make`
+
+This will produce a binary named `ezh_clang_hints`. 
+
+### Usage
+`./ezh_clang_hints <source>`
