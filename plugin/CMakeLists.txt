@@ -11,10 +11,10 @@ include_directories(${CLANG_INCLUDE_DIRS})
 add_definitions(${CLANG_DEFINITIONS})
 
 # add_library(assertion_plugin MODULE plugin.cpp)
-add_executable(assertion_plugin src/plugin.cpp)
+add_executable(ezh_clang_hints src/plugin.cpp)
 
 # Link against Clang's libraries
-target_link_libraries(assertion_plugin PRIVATE
+target_link_libraries(ezh_clang_hints PRIVATE
   clangAST
   clangFrontend
   clangBasic
