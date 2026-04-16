@@ -1,0 +1,35 @@
+gem5 Simulator System.  https://www.gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 version 22.0.0.1
+gem5 compiled Jan 23 2026 13:06:43
+gem5 started Apr 15 2026 20:39:48
+gem5 executing on AlexLeeComputer, pid 3125
+command line: build/X86/gem5.opt --outdir=m5out/ configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --num-cpus=1 --cmd=./myworkloads/amr_counts
+
+Global frequency set at 1000000000000 ticks per second
+build/X86/mem/dram_interface.cc:690: warn: DRAM device capacity (8192 Mbytes) does not match the address range assigned (512 Mbytes)
+build/X86/arch/x86/linux/se_workload.cc:76: warn: Unknown operating system; assuming Linux.
+0: system.remote_gdb: listening for remote gdb on port 7000
+Beginning simulation!
+build/X86/sim/simulate.cc:194: info: Entering event queue @ 0.  Starting simulation...
+EXIT: tick=796388500 cause=workbegin code=0
+ITER_BEGIN t=0 tick=796388500
+build/X86/sim/simulate.cc:194: info: Entering event queue @ 796388500.  Starting simulation...
+EXIT: tick=2727385250 cause=workend code=0
+ITER_END   t=0 tick=2727385250
+build/X86/sim/simulate.cc:194: info: Entering event queue @ 2727385250.  Starting simulation...
+EXIT: tick=2727392500 cause=workbegin code=1
+ITER_BEGIN t=1 tick=2727392500
+build/X86/sim/simulate.cc:194: info: Entering event queue @ 2727392500.  Starting simulation...
+EXIT: tick=4658143250 cause=workend code=1
+ITER_END   t=1 tick=4658143250
+build/X86/sim/simulate.cc:194: info: Entering event queue @ 4658143250.  Starting simulation...
+EXIT: tick=4658150500 cause=workbegin code=2
+ITER_BEGIN t=2 tick=4658150500
+build/X86/sim/simulate.cc:194: info: Entering event queue @ 4658150500.  Starting simulation...
+EXIT: tick=6588466000 cause=workend code=2
+ITER_END   t=2 tick=6588466000
+build/X86/sim/simulate.cc:194: info: Entering event queue @ 6588466000.  Starting simulation...
+EXIT: tick=6724678500 cause=exiting with last active thread context code=0
+Program finished at tick 6724678500

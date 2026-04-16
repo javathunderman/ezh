@@ -1,1 +1,5 @@
 build/
+
+amr_workload/dramsim3_tracechunks/*
+
+dramsim3.trace
