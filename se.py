@@ -50,7 +50,8 @@ from m5.objects import *
 from m5.params import NULL
 from m5.util import addToPath, fatal, warn
 
-addToPath('../')
+# addToPath('../')
+addToPath('./gem5/configs')
 
 from ruby import Ruby
 
@@ -124,7 +125,9 @@ if '--ruby' in sys.argv:
     Ruby.define_options(parser)
 
 args = parser.parse_args()
-
+if not hasattr(args, 'l3cache'): # dummy simple soln
+    args.l3cache = False
+    
 multiprocesses = []
 numThreads = 1
 
@@ -265,13 +268,15 @@ else:
     #     CacheConfig.config_cache(args, system)
     #     system.monitor.mem_side_port = system.membus.cpu_side_ports
     if not args.l3cache:
-        system.monitor = CommMonitor()
-        system.monitor.trace = MemTraceProbe(trace_file = "trace.ptrc.gz")
-        if not args.l2cache:
-            system.to_monitor_bus = L2XBar(clk_domain=system.cpu_clk_domain)
-            system.to_monitor_bus.mem_side_ports = system.monitor.cpu_side_port
+        
         CacheConfig.config_cache(args, system)
-        system.monitor.mem_side_port = system.membus.cpu_side_ports    
+        # system.monitor = CommMonitor()
+        # system.monitor.trace = MemTraceProbe(trace_file = "trace.ptrc.gz")
+        # if not args.l2cache:
+        #     system.to_monitor_bus = L2XBar(clk_domain=system.cpu_clk_domain)
+        #     system.to_monitor_bus.mem_side_ports = system.monitor.cpu_side_port
+        # CacheConfig.config_cache(args, system)
+        # system.monitor.mem_side_port = system.membus.cpu_side_ports    
     else:
         CacheConfig.config_cache_l3(args, system)
     MemConfig.config_mem(args, system)
