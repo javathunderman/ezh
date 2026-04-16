@@ -1,0 +1,3 @@
+[submodule "gem5-ece511"]
+	path = gem5-ece511
+	url = ./gem5-ece511/
