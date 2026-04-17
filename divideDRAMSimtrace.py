@@ -172,7 +172,7 @@ def main():
     parser.add_argument(
         "--tickDivParam",
         type=int,
-        default=250,
+        default=630,
         help="Tick divisor to convert gem5 ticks to trace cycles (default: 250)",
     )
 
