@@ -1,0 +1,30 @@
+DRAMSim3 all_bank_idle_cycles.0 vs Iteration (Outliers Removed)
+===============================================================
+
+bitshift 2: kept 7 / 7 points
+  iter=0 value=21536
+  iter=1 value=244211
+  iter=2 value=521173
+  iter=3 value=633838
+  iter=4 value=696126
+  iter=5 value=738807
+  iter=6 value=789679
+
+bitshift 4: kept 7 / 7 points
+  iter=0 value=21536
+  iter=1 value=244211
+  iter=2 value=521173
+  iter=3 value=633838
+  iter=4 value=696126
+  iter=5 value=738807
+  iter=6 value=789679
+
+bitshift 6: kept 7 / 7 points
+  iter=0 value=21536
+  iter=1 value=244211
+  iter=2 value=521173
+  iter=3 value=633838
+  iter=4 value=696126
+  iter=5 value=738807
+  iter=6 value=789679
+
