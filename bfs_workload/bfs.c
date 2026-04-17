@@ -5,10 +5,10 @@
 #define MAX_EDGES 500000
 
 // -------- GRAPH STORAGE (Adjacency List) --------
-struct Edge {
+typedef struct Edge {
     int to;
     int next;
-};
+} Edge;
 
 Edge edges[MAX_EDGES];
 int head[MAX_NODES];
@@ -23,11 +23,11 @@ void add_edge(int u, int v) {
 }
 
 // -------- SIMPLE QUEUE --------
-struct Queue {
+typedef struct Queue {
     int data[MAX_NODES];
     int front;
     int rear;
-};
+} Queue;
 
 void init_queue(Queue* q) {
     q->front = 0;
@@ -130,7 +130,8 @@ static __attribute__((noreturn)) void sys_exit(int code) {
     for (;;) { }
 }
 
-extern "C" void _start() {
+__attribute__((visibility("default")))
+void _start(void) {
     int num_nodes = 100000;
     int num_edges = 400000;
 
