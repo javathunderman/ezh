@@ -7,4 +7,3 @@ fft_workload/fft_gem5_output/*
 
 dramsim3.trace
 bfs
-fft_workload/fft_gem5_output/trace.ptrc.gz
