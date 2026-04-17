@@ -2,5 +2,9 @@ build/
 
 amr_workload/dramsim3_tracechunks/*
 
+fft_workload/*.trace
+fft_workload/fft_gem5_output/*
+
 dramsim3.trace
 bfs
+fft_workload/fft_gem5_output/trace.ptrc.gz
