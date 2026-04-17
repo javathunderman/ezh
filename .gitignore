@@ -7,3 +7,7 @@ fft_workload/fft_gem5_output/*
 
 dramsim3.trace
 bfs
+
+graph_coarsening_dramsim3.trace
+graph_coarsening_log_ascii_trace
+graph_coarsening_log_417

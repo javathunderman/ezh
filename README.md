@@ -84,7 +84,7 @@ alexl5@AlexLeeComputer:/mnt/c/Users/alexl5/Documents/ece511_mp_dir/gem5_tracecop
 
 python3 convert_trace.py \
 ../util/415log1_1iter dramsim3.trace \
---tck-ps 250
+--tck-ps 630
 
 6: split dramsim3.trace into chunks based on iter begin/end ticks
 
