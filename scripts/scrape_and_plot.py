@@ -8,8 +8,8 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 
-BITSHIFT_RE = re.compile(r"dramsim3_bitshift(\d+)")
-ITERDIR_RE = re.compile(r"dramsim_results_iter_(\d+)(?:-(\d+))?")
+BITSHIFT_RE = re.compile(r"dramsim_results_bitshift_(\d+)")
+ITERDIR_RE = re.compile(r"dramsim_results_(\d+)")
 BANK0_RE = re.compile(r"all_bank_idle_cycles\.0\s*=\s*(\d+)")
 BANK1_RE = re.compile(r"all_bank_idle_cycles\.1\s*=\s*(\d+)")
 
