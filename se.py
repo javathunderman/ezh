@@ -243,7 +243,7 @@ for i in range(np):
         system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
 
     system.cpu[i].createThreads()
-
+    
 if args.ruby:
     Ruby.create_system(args, False, system)
     assert(args.num_cpus == len(system.ruby._cpu_ports))
@@ -264,19 +264,23 @@ else:
     MemClass = Simulation.setMemClass(args)
     system.membus = SystemXBar()
     system.system_port = system.membus.cpu_side_ports
-    # if not args.l3cache:
-    #     system.monitor = CommMonitor()
-    #     system.monitor.trace = MemTraceProbe(trace_file = "trace.ptrc.gz")
-    #     CacheConfig.config_cache(args, system)
-    #     system.monitor.mem_side_port = system.membus.cpu_side_ports
+
+    for i in range(np):
+        system.cpu[i].createInterruptController()
+        system.cpu[i].interrupts[0].pio = system.membus.mem_side_ports
+        system.cpu[i].interrupts[0].int_requestor = system.membus.cpu_side_ports
+        system.cpu[i].interrupts[0].int_responder = system.membus.mem_side_ports
+
     if not args.l3cache:
-        # system.monitor = CommMonitor()
-        # system.monitor.trace = MemTraceProbe(trace_file = "trace.ptrc.gz")
-        # if not args.l2cache:
-            # system.to_monitor_bus = L2XBar(clk_domain=system.cpu_clk_domain)
-            # system.to_monitor_bus.mem_side_ports = system.monitor.cpu_side_port
-        CacheConfig.config_cache(args, system)
-        # system.monitor.mem_side_port = system.membus.cpu_side_ports    
+        system.monitor = CommMonitor()
+        system.monitor.trace = MemTraceProbe(trace_file = "trace.ptrc.gz")
+        system.to_monitor_bus = L2XBar(clk_domain=system.cpu_clk_domain)
+        system.to_monitor_bus.mem_side_ports = system.monitor.cpu_side_port
+        
+        for cpu in system.cpu:
+            cpu.icache_port = system.to_monitor_bus.cpu_side_ports
+            cpu.dcache_port = system.to_monitor_bus.cpu_side_ports
+        system.monitor.mem_side_port = system.membus.cpu_side_ports    
     else:
         CacheConfig.config_cache_l3(args, system)
     MemConfig.config_mem(args, system)
