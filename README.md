@@ -1,3 +1,40 @@
+## How to go from workload to dramsim results
+### Write workload:
+- No syscalls, no libraries, no nothing
+- Unless specifically using C++ features, use C (This is so we can use gcc over g++)
+- See already written workloads for start and end setups + other stuff
+
+### Compiling workload:
+- We basically want the compiler to think it's compiling for the Intel 4004 
+- Compilation command: `gcc -O0 -nostdlib -static -ffreestanding -fno-stack-protector -no-pie -e _start <workload>.c -Ipath/to/ezh/gem5/include -Lpath/to/ezh/gem5/util/m5/build/x86/out -lm5 -o <workload>`
+
+### Simulating with gem5:
+- Build gem5 with Scons
+- Simulate with gem5: `build/X86/gem5.opt --outdir=m5out/ ../se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --mem-size=2GB --num-cpus=1 --cmd=../<workload>_workload>/<workload>`
+- Note: You may need to increase mem_size, depending on the amount of memory used by your workload
+
+### Extracting trace file from output:
+- Move m5out/ to your desired location
+- Use gunzip to extract the trace file: `gunzip -k trace.ptrc.gz` (-k preserves the .gz incase you need it again)
+- This will produce `trace.ptrc`, which we then feed to `/gem5/util/decode_packet_trace.py`
+- Example: `./util/decode_packet_trace.py ../<workload>_workload/<workload>_gem5_output/trace.ptrc ../<workload>_workload/<workload>_gem5_output/trace.txt
+
+### Converting and splitting the gem5 trace
+- We need to convert the gem5 trace into a DRAMSim3 trace so that we can use it with DRAMSim3
+- We then need to break that trace across our iterative loops so that we can simulate them to get better performance
+- To convert the trace, use `parse_gem5_trace.py` in the root
+- Example:  `./parse_gem5_trace.py --gem5_trace_file <workload>_workload/<workload>_gem5_output/trace.txt --dramsim3_trace_file /<workload>_workload/<workload>_dramsim.trace --dramsim3_tCK 0.94`
+- Then, we need to break the trace into the multiple iterations -- todo: Finish this
+
+
+### Simulating with DRAMSim3:
+- This one is easy, as you can get the command from the MP3 doc.
+- Example: ./build/dramsim3main configs/DDR4_8Gb_x8_3200.ini -c <num_cycles> -t ../ezh/<workload>_workload/<workload>_dramsim.trace.trace -o ./
+
+Congratulations, you've completed the entire flow!
+
+
+
 1: 
 
 after building gem5, yhou'll need to build the m5ops library so you can put the m5_ops m5_work_begin/m5_work_end in your workload
