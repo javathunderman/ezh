@@ -135,7 +135,11 @@ void _start(void) {
     int num_nodes = 100000;
     int num_edges = 400000;
 
+    
+    m5_work_begin(0, 0);   // workid = t
     generate_graph(num_nodes, num_edges);
+    bfs(0, num_nodes);
+    m5_work_end(0, 0);
 
     bfs(0, num_nodes);
     // int rc = workload_main();
