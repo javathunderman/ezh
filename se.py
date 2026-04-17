@@ -282,5 +282,27 @@ system.workload = SEWorkload.init_compatible(mp0_path)
 if args.wait_gdb:
     system.workload.wait_for_remote_gdb = True
 
+# root = Root(full_system = False, system = system)
+# Simulation.run(args, root, system, FutureClass)
+
+system.exit_on_work_items = True
+
 root = Root(full_system = False, system = system)
-Simulation.run(args, root, system, FutureClass)
+m5.instantiate()
+
+print("Beginning simulation!")
+while True:
+    event = m5.simulate()
+    cause = event.getCause()
+    code = event.getCode()
+    tick = m5.curTick()
+
+    print(f"EXIT: tick={tick} cause={cause} code={code}")
+
+    if cause == "workbegin":
+        print(f"ITER_BEGIN t={code} tick={tick}")
+    elif cause == "workend":
+        print(f"ITER_END   t={code} tick={tick}")
+    elif "exiting with last active thread context" in cause:
+        print(f"Program finished at tick {tick}")
+        break
