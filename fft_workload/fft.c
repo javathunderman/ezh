@@ -10,7 +10,7 @@
 
 #include <gem5/m5ops.h>
 
-#define FFT_N (1 << 25)                 // FFT size. Must be a power of two.
+#define FFT_N (1 << 16)                 // FFT size. Must be a power of two.
 #define M_PI_VAL 3.14159265358979323846 // Double precision pi
 
 /* =========================================================================
@@ -110,9 +110,11 @@ static void bit_reverse(complex_t *a, int n) {
 static void fft(complex_t *a, int n) {
     bit_reverse(a, n);
 
+    int stage = 0;
+
     for (int len = 2; len <= n; len <<= 1) {
 
-        m5_work_begin(len, 0); // work ID is the length
+        m5_work_begin(stage, 0); // work ID is the length
 
         double ang = -2.0 * M_PI_VAL / (double)len;
         complex_t wlen = { my_cos(ang), my_sin(ang) };
@@ -128,7 +130,9 @@ static void fft(complex_t *a, int n) {
                 w = cmul(w, wlen);
             }
         }
-        m5_work_end(len, 0);
+        m5_work_end(stage, 0);
+
+        stage++;
     }
 }
 
