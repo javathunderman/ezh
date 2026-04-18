@@ -2,13 +2,11 @@
 #include <gem5/m5ops.h>
 #include <stdint.h>
 
-// ---------------- CONFIG ----------------
-#define MAX_NODES 1024
-#define MAX_EDGES 8192
-#define MAX_LEVELS 10
+#define MAX_NODES 10000
+#define MAX_EDGES 40000
+#define MAX_LEVELS 20
 #define MIN_COARSE_SIZE 8
 
-// ---------------- GRAPH ----------------
 typedef struct {
     int num_nodes;
     int num_edges;
@@ -16,7 +14,6 @@ typedef struct {
     int col_idx[MAX_EDGES];
 } Graph;
 
-// ---------------- RNG ----------------
 static uint32_t seed = 123456789;
 
 uint32_t lcg_rand() {
@@ -24,7 +21,6 @@ uint32_t lcg_rand() {
     return seed;
 }
 
-// ---------------- GRAPH GENERATION ----------------
 void generate_graph(Graph* g, int n, int avg_degree) {
     g->num_nodes = n;
 
@@ -48,7 +44,7 @@ void generate_graph(Graph* g, int n, int avg_degree) {
     g->num_edges = edge_counter;
 }
 
-// ---------------- MATCHING ----------------
+
 void greedy_matching(Graph* g, int* match) {
     for (int i = 0; i < g->num_nodes; i++) {
         match[i] = -1;
@@ -76,14 +72,13 @@ void greedy_matching(Graph* g, int* match) {
     }
 }
 
-// ---------------- COARSEN ONE LEVEL ----------------
+
 int coarsen_once(Graph* fine, Graph* coarse) {
     int match[MAX_NODES];
     int coarse_id[MAX_NODES];
 
     greedy_matching(fine, match);
 
-    // Assign coarse IDs
     int c = 0;
     for (int i = 0; i < fine->num_nodes; i++) {
         if (match[i] == i || i < match[i]) {
@@ -126,7 +121,7 @@ int coarsen_once(Graph* fine, Graph* coarse) {
     return c; // return new node count
 }
 
-// ---------------- MULTILEVEL COARSENING ----------------
+
 int multilevel_coarsen(Graph levels[MAX_LEVELS]) {
     int level = 0;
 
@@ -140,8 +135,8 @@ int multilevel_coarsen(Graph levels[MAX_LEVELS]) {
         int new_nodes = coarsen_once(fine, coarse);
 
         // Stopping conditions
-        if (new_nodes >= prev_nodes) break;        // no reduction
-        if (new_nodes <= MIN_COARSE_SIZE) break;   // small enough
+        if (new_nodes >= prev_nodes) break;
+        if (new_nodes <= MIN_COARSE_SIZE) break;
         m5_work_end(level, 0);
         level++;
     }
@@ -169,18 +164,11 @@ extern "C" void _start(void) {
     Graph levels[MAX_LEVELS];
 
     int N = 256;
-    int DEG = 4;
+    int DEG = 10;
 
     generate_graph(&levels[0], N, DEG);
 
     int last_level = multilevel_coarsen(levels);
 
-    // Prevent optimization
-    volatile int sink = 0;
-    for (int i = 0; i <= last_level; i++) {
-        sink += levels[i].num_nodes;
-        sink += levels[i].num_edges;
-    }
-    // int rc = workload_main();
     sys_exit(0);
 }

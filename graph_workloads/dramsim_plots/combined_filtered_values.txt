@@ -1,57 +1,59 @@
 DRAMSim3 all_bank_idle_cycles vs Iteration (Outliers Removed)
 =============================================================
 
-bitshift 2 rank0: kept 7 / 7 points
-  iter=0 value=21536
-  iter=1 value=244211
-  iter=2 value=521173
-  iter=3 value=633838
-  iter=4 value=696126
-  iter=5 value=738807
-  iter=6 value=789679
+bitshift 0 rank0: kept 5 / 6 points
+  iter=1 value=517865
+  iter=2 value=628259
+  iter=3 value=740923
+  iter=4 value=767515
+  iter=5 value=786400
 
-bitshift 2 rank1: kept 7 / 7 points
-  iter=0 value=21590
-  iter=1 value=249926
-  iter=2 value=514989
-  iter=3 value=639547
-  iter=4 value=701811
-  iter=5 value=732594
-  iter=6 value=795366
+bitshift 0 rank1: kept 5 / 6 points
+  iter=1 value=523538
+  iter=2 value=633917
+  iter=3 value=747161
+  iter=4 value=773753
+  iter=5 value=792638
 
-bitshift 4 rank0: kept 7 / 7 points
-  iter=0 value=21536
-  iter=1 value=244211
-  iter=2 value=521173
-  iter=3 value=633838
-  iter=4 value=696126
-  iter=5 value=738807
-  iter=6 value=789679
+bitshift 2 rank0: kept 5 / 6 points
+  iter=1 value=517865
+  iter=2 value=628259
+  iter=3 value=740923
+  iter=4 value=767515
+  iter=5 value=786400
 
-bitshift 4 rank1: kept 7 / 7 points
-  iter=0 value=21590
-  iter=1 value=249926
-  iter=2 value=514989
-  iter=3 value=639547
-  iter=4 value=701811
-  iter=5 value=732594
-  iter=6 value=795366
+bitshift 2 rank1: kept 5 / 6 points
+  iter=1 value=523538
+  iter=2 value=633917
+  iter=3 value=747161
+  iter=4 value=773753
+  iter=5 value=792638
 
-bitshift 6 rank0: kept 7 / 7 points
-  iter=0 value=21536
-  iter=1 value=244211
-  iter=2 value=521173
-  iter=3 value=633838
-  iter=4 value=696126
-  iter=5 value=738807
-  iter=6 value=789679
+bitshift 4 rank0: kept 5 / 6 points
+  iter=1 value=517865
+  iter=2 value=628259
+  iter=3 value=740923
+  iter=4 value=767515
+  iter=5 value=786400
 
-bitshift 6 rank1: kept 7 / 7 points
-  iter=0 value=21590
-  iter=1 value=249926
-  iter=2 value=514989
-  iter=3 value=639547
-  iter=4 value=701811
-  iter=5 value=732594
-  iter=6 value=795366
+bitshift 4 rank1: kept 5 / 6 points
+  iter=1 value=523538
+  iter=2 value=633917
+  iter=3 value=747161
+  iter=4 value=773753
+  iter=5 value=792638
+
+bitshift 6 rank0: kept 5 / 6 points
+  iter=1 value=517865
+  iter=2 value=628259
+  iter=3 value=740923
+  iter=4 value=767515
+  iter=5 value=786400
+
+bitshift 6 rank1: kept 5 / 6 points
+  iter=1 value=523538
+  iter=2 value=633917
+  iter=3 value=747161
+  iter=4 value=773753
+  iter=5 value=792638
 

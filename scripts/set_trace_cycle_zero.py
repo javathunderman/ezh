@@ -1,5 +1,5 @@
 import os
-
+import sys
 def normalize_trace_file(filepath):
     with open(filepath, 'r') as f:
         lines = f.readlines()
@@ -50,7 +50,7 @@ def normalize_trace_file(filepath):
 
 
 def main():
-    root = ""
+    root = sys.argv[1]
     for r, _, files in os.walk(root):
         for file in files:
             if file.endswith(".trace") or file.endswith(".txt"):
