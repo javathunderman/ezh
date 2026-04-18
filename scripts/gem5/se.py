@@ -51,7 +51,7 @@ from m5.params import NULL
 from m5.util import addToPath, fatal, warn
 
 # addToPath('../')
-addToPath('./gem5/configs')
+addToPath('../../gem5/configs')
 
 
 from ruby import Ruby

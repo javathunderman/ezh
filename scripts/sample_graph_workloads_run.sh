@@ -15,7 +15,7 @@ cd ~/ezh/DRAMsim3/build
 for i in {0..6..2}
 do
     if [ "$i" -ne 0 ]; then
-        python3 ~/ezh/scripts/rewrite_dramsim3_bankshift.py --indir ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_0/ --outdir ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i --bank-count 16 --bank-lsb 0 --bank-bit-shift $i --iter-set 5
+        python3 ~/ezh/scripts/rewrite_dramsim3_bankshift.py --indir ~/ezh/fft_workload/chunk_traces/fft_trace_chunks_bitshift_0/ --outdir ~/ezh/fft_workload/chunk_traces/fft_trace_chunks_bitshift_$i --bank-count 16 --bank-lsb 0 --bank-bit-shift $i --iter-set 5
     fi
     python3 ~/ezh/scripts/set_trace_cycle_zero.py ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i
     for j in {0..5}

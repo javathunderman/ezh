@@ -3,6 +3,7 @@ build/
 amr_workload/dramsim3_tracechunks/*
 
 fft_workload/*.trace
+fft_workload/chunk_traces/*
 fft_workload/fft_gem5_output/*
 
 dramsim3.trace
