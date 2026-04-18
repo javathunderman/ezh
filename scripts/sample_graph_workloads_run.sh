@@ -31,7 +31,6 @@ do
 
         diff=$((last - second_last))
 
-        echo "$diff"
         ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c $diff -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_00000$j*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_$j
         
     done
