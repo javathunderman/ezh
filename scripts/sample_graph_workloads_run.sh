@@ -1,5 +1,5 @@
 cd ../graph_workloads
-g++ -O0 \-nostdlib -static -ffreestanding -fno-exceptions -fno-rtti -fno-stack-protector -no-pie graph_coarsening.cpp \-I~/ezh/gem5/include \-L~/ezh/gem5/util/m5/build/x86/out -lm5 -o graph_coarsening
+g++ -O0 \-nostdlib -static -ffreestanding -fno-exceptions -fno-rtti -fno-stack-protector -no-pie graph_coarsening.cpp \-I/home/arjun/ezh/gem5/include \-L/home/arjun/ezh/gem5/util/m5/build/x86/out -lm5 -o graph_coarsening
 cd ../gem5
 build/X86/gem5.opt \--outdir=../graph_workloads/m5out_graph_coarsening/ \configs/example/se.py   \--cpu-type=AtomicSimpleCPU   \--cpu-clock=4GHz   \--cacheline_size=64   \--num-cpus=1   \--cmd=../graph_workloads/graph_coarsening > ../graph_workloads/graph_coarsening_log.txt
 cd util
@@ -22,9 +22,17 @@ do
     do
         mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_$j
         f=$(ls ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_00000$j_*)
-        tmp=${f%.trace}
-        last_num=${tmp##*_}
-        ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c $last_num -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_00000$j*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_$j
+
+        base=${f%.trace}
+
+        last=${base##*_}
+        second_last=${base%_*}
+        second_last=${second_last##*_}
+
+        diff=$((last - second_last))
+
+        echo "$diff"
+        ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c $diff -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_00000$j*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_$j
         
     done
     # ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 807816 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_$i/iter_000006_cycles_792649_807816.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_6

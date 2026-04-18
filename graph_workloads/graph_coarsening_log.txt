@@ -4,8 +4,8 @@ gem5 is copyrighted software; use the --copyright option for details.
 
 gem5 version 22.0.0.1
 gem5 compiled Apr 16 2026 19:16:31
-gem5 started Apr 17 2026 21:04:39
-gem5 executing on ece511, pid 25681
+gem5 started Apr 17 2026 22:59:57
+gem5 executing on ece511, pid 28563
 command line: build/X86/gem5.opt --outdir=../graph_workloads/m5out_graph_coarsening/ configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --num-cpus=1 --cmd=../graph_workloads/graph_coarsening
 
 Beginning simulation!

@@ -2,30 +2,30 @@ DRAMSim3 all_bank_idle_cycles.0 vs Iteration (Outliers Removed)
 ===============================================================
 
 bitshift 0: kept 5 / 6 points
-  iter=1 value=517865
-  iter=2 value=628259
-  iter=3 value=740923
-  iter=4 value=767515
-  iter=5 value=786400
+  iter=1 value=921618
+  iter=2 value=957316
+  iter=3 value=1028705
+  iter=4 value=1028705
+  iter=5 value=1028705
 
 bitshift 2: kept 5 / 6 points
-  iter=1 value=517865
-  iter=2 value=628259
-  iter=3 value=740923
-  iter=4 value=767515
-  iter=5 value=786400
+  iter=1 value=921618
+  iter=2 value=957316
+  iter=3 value=1028705
+  iter=4 value=1028705
+  iter=5 value=1028705
 
 bitshift 4: kept 5 / 6 points
-  iter=1 value=517865
-  iter=2 value=628259
-  iter=3 value=740923
-  iter=4 value=767515
-  iter=5 value=786400
+  iter=1 value=921618
+  iter=2 value=957316
+  iter=3 value=1028705
+  iter=4 value=1028705
+  iter=5 value=1028705
 
 bitshift 6: kept 5 / 6 points
-  iter=1 value=517865
-  iter=2 value=628259
-  iter=3 value=740923
-  iter=4 value=767515
-  iter=5 value=786400
+  iter=1 value=921618
+  iter=2 value=957316
+  iter=3 value=1028705
+  iter=4 value=1028705
+  iter=5 value=1028705
 
