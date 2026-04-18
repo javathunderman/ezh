@@ -18,18 +18,14 @@ do
         python3 ~/ezh/scripts/rewrite_dramsim3_bankshift.py --indir ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_0/ --outdir ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i --bank-count 16 --bank-lsb 0 --bank-bit-shift $i --iter-set 5
     fi
     python3 ~/ezh/scripts/set_trace_cycle_zero.py ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i
-    mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_0
-    mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_1
-    mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_2
-    mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_3
-    mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_4
-    mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_5
-    # mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_6
-    ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 467999 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_000000*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_0
-    ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 631190 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_000001*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_1
-    ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 705886 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_000002*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_2
-    ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 747161 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_000003*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_3
-    ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 773753 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_000004*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_4
-    ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 792638 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_000005*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_5
+    for j in {0..5}
+    do
+        mkdir -p ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_$j
+        f=$(ls ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_00000$j_*)
+        tmp=${f%.trace}
+        last_num=${tmp##*_}
+        ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c $last_num -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_bitshift_$i/iter_00000$j*.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_$j
+        
+    done
     # ./dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 807816 -t ~/ezh/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_$i/iter_000006_cycles_792649_807816.trace -o ~/ezh/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_6
 done
