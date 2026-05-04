@@ -1,6 +1,6 @@
 [submodule "gem5"]
 	path = gem5
-	url = https://gem5.googlesource.com/public/gem5
+	url = git@github.com:/javathunderman/gem5.git
 [submodule "DRAMsim3"]
 	path = DRAMsim3
 	url = https://github.com/umd-memsys/DRAMsim3
