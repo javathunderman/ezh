@@ -1,7 +1,8 @@
 cd ../graph_workloads
 g++ -O0 \-nostdlib -static -ffreestanding -fno-exceptions -fno-rtti -fno-stack-protector -no-pie graph_coarsening.cpp \-I/home/arjun/ezh/gem5/include \-L/home/arjun/ezh/gem5/util/m5/build/x86/out -lm5 -o graph_coarsening
 cd ../gem5
-build/X86/gem5.opt \--outdir=../graph_workloads/m5out_graph_coarsening/ \configs/example/se.py   \--cpu-type=AtomicSimpleCPU   \--cpu-clock=4GHz   \--cacheline_size=64   \--num-cpus=1   \--cmd=../graph_workloads/graph_coarsening > ../graph_workloads/graph_coarsening_log.txt
+build/X86/gem5.opt \--debug-flags=DRAMOpt \--outdir=../graph_workloads/m5out_graph_coarsening/ \configs/example/se.py   \--cpu-type=AtomicSimpleCPU   \--cpu-clock=4GHz   \--cacheline_size=64   \--num-cpus=1   \--cmd=../graph_workloads/graph_coarsening > ../graph_workloads/graph_coarsening_log.txt
+mv m5out/dram_opt* ../graph_workloads
 cd util
 python3 decode_packet_trace.py ~/ezh/graph_workloads/m5out_graph_coarsening/trace.ptrc.gz ~/ezh/graph_workloads/graph_coarsening_log_ascii_trace
 cd ../../ # repo root
