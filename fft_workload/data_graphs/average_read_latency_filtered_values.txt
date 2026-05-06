@@ -1,0 +1,83 @@
+Average Read Latency vs Iteration (Outliers Removed)
+====================================================
+
+bitshift 0: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 2: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 4: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 6: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 8: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 10: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 12: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 14: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407
+
+bitshift 16: kept 7/10
+  iter=2  value=297.822
+  iter=4  value=296.887
+  iter=5  value=297.866
+  iter=6  value=298.011
+  iter=7  value=298.616
+  iter=8  value=298.463
+  iter=9  value=298.407

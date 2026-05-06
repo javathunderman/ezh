@@ -4,53 +4,237 @@ import os
 import re
 import argparse
 from pathlib import Path
+from typing import Optional, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 
+# Format:
+#   "Display Label": {
+#       "key":    "stat_key_in_file",   # required
+#       "ylabel": "Y-axis label",       # optional, defaults to key
+#       "ranked": True/False,           # optional, default True
+#                                       #   True  → collect .0 and .1 variants
+#                                       #   False → collect the bare key only
+#   }
+#
+# Examples from the DRAMSim3 output:
+#   ranked=True  → all_bank_idle_cycles.0 / all_bank_idle_cycles.1
+#   ranked=False → average_read_latency, average_bandwidth, num_reads_done
+
+STATS_CONFIG = {
+    "All Bank Idle Cycles": {
+        "key":    "all_bank_idle_cycles",
+        "ylabel": "Idle Cycles",
+        "ranked": True,
+    },
+    "Rank Active Cycles": {
+        "key":    "rank_active_cycles",
+        "ylabel": "Active Cycles",
+        "ranked": True,
+    },
+    "Average Read Latency": {
+        "key":    "average_read_latency",
+        "ylabel": "Latency (cycles)",
+        "ranked": False,
+    },
+    "Average Bandwidth": {
+        "key":    "average_bandwidth",
+        "ylabel": "Bandwidth",
+        "ranked": False,
+    },
+    "Reads Done": {
+        "key":    "num_reads_done",
+        "ylabel": "Read Requests",
+        "ranked": False,
+    },
+    "Read Row Hits": {
+        "key":    "num_read_row_hits",
+        "ylabel": "Row Buffer Hits",
+        "ranked": False,
+    },
+    # ---- add more stats below as needed ----
+    # "Total Energy": {
+    #     "key":    "total_energy",
+    #     "ylabel": "Energy (pJ)",
+    #     "ranked": False,
+    # },
+    # "Average Power": {
+    #     "key":    "average_power",
+    #     "ylabel": "Power (mW)",
+    #     "ranked": False,
+    # },
+}
+
 BITSHIFT_RE = re.compile(r"dramsim_results_bitshift_(\d+)")
 ITERDIR_RE = re.compile(r"dramsim_results_(\d+)")
-BANK0_RE = re.compile(r"all_bank_idle_cycles\.0\s*=\s*(\d+)")
-BANK1_RE = re.compile(r"all_bank_idle_cycles\.1\s*=\s*(\d+)")
 
-
-def filter_outliers_iqr(xs, ys):
+def _make_stat_pattern(key: str, rank: Optional[int]) -> re.Pattern:
     """
-    Returns filtered (xs, ys) with outliers removed based on IQR.
+    Build a compiled regex for a stat line.
+ 
+    For ranked stats (rank=0 or rank=1):
+        all_bank_idle_cycles.0   =   275159
+    For unranked stats (rank=None):
+        average_read_latency     =   312.823
     """
-    if len(ys) < 4:
-        return xs, ys  # not enough points to filter
+    if rank is not None:
+        escaped = re.escape(f"{key}.{rank}")
+    else:
+        escaped = re.escape(key)
+    return re.compile(rf"^\s*{escaped}\s*=\s*([0-9eE+\-.]+)")
 
-    sorted_ys = sorted(ys)
-    q1 = sorted_ys[len(sorted_ys) // 4]
-    q3 = sorted_ys[(3 * len(sorted_ys)) // 4]
-    iqr = q3 - q1
 
-    lower = q1 - 1.5 * iqr
-    upper = q3 + 1.5 * iqr
-
-    filtered_xs = []
-    filtered_ys = []
-
-    for x, y in zip(xs, ys):
-        if lower <= y <= upper:
-            filtered_xs.append(x)
-            filtered_ys.append(y)
-
-    return filtered_xs, filtered_ys
-
-def extract_iter_x(iter_dir_name: str):
+def _build_patterns(config: dict) -> dict:
     """
-    For names like:
-      dramsim_results_iter_0000
-      dramsim_results_iter_0000-0016
-
-    use the first iter number as the x-axis point.
+    Pre-compile all regex patterns from STATS_CONFIG.
+ 
+    Returns:
+        {
+          label: {
+              "ranked": bool,
+              "patterns": {
+                  0: re.Pattern,   # for ranked=True
+                  1: re.Pattern,
+                  # -or-
+                  None: re.Pattern # for ranked=False
+              }
+          }
+        }
     """
+    built = {}
+    for label, cfg in config.items():
+        key     = cfg["key"]
+        ranked  = cfg.get("ranked", True)
+    
+        if ranked:
+            patterns = {
+                0: _make_stat_pattern(key, 0),
+                1: _make_stat_pattern(key, 1),
+            }
+        else:
+            patterns = {None: _make_stat_pattern(key, None)}
+        
+        built[label] = {"ranked": ranked, "patterns": patterns}
+        
+    return built
+
+COMPILED = _build_patterns(STATS_CONFIG)
+
+
+
+def extract_iter_x(iter_dir_name: str) -> Optional[int]:
+    """Return the first iteration number from a directory name, or None"""
     m = ITERDIR_RE.search(iter_dir_name)
-    if not m:
-        return None
-    return int(m.group(1))
+    return int(m.group(1)) if m else None
+
+
+def parse_stat_file(txt_path: Path) -> dict:
+    """
+    Parse a single dramsim3.txt file.
+ 
+    Returns a flat dict keyed by (label, rank_or_None) → float value.
+    Missing stats are omitted rather than set to None.
+    """
+
+    # Build the lookup table
+    search_table: list[tuple[re.Pattern, str, int | None]] = []
+    
+    for label, info in COMPILED.items():
+        for rank_key, pat in info["patterns"].items():
+            search_table.append((pat, label, rank_key))
+
+    found: dict[tuple[str, int | None], float] = {}
+    remaining = set(range(len(search_table)))
+ 
+    with open(txt_path, "r", encoding="utf-8", errors="ignore") as f:
+        for line in f:
+            if not remaining:
+                break
+            for idx in list(remaining):
+                pat, label, rank_key = search_table[idx]
+                m = pat.match(line)
+                if m:
+                    found[(label, rank_key)] = float(m.group(1))
+                    remaining.discard(idx)
+ 
+    return found
+
+
+def collect_data(main_dir: Path) -> dict:
+    """
+    Walk the directory tree and collect all configured stats.
+ 
+    Returns:
+        {
+          bitshift_int: {
+              (label, rank_or_None): [(iter_idx, value), ...],
+              ...
+          }
+        }
+    """
+    
+    data: dict[int, dict] = {}
+    
+    for child in sorted(main_dir.iterdir()):
+        if not child.is_dir():
+            continue
+        m = BITSHIFT_RE.fullmatch(child.name)
+        if not m:
+            continue
+ 
+        bitshift = int(m.group(1))
+        series: dict[tuple, list] = {}
+ 
+        for sub in sorted(child.iterdir()):
+            if not sub.is_dir():
+                continue
+            iter_idx = extract_iter_x(sub.name)
+            if iter_idx is None:
+                continue
+ 
+            txt_path = sub / "dramsim3.txt"
+            if not txt_path.exists():
+                print(f"warning: missing {txt_path}")
+                continue
+ 
+            parsed = parse_stat_file(txt_path)
+            if not parsed:
+                print(f"warning: no configured stats found in {txt_path}")
+                continue
+ 
+            for (label, rank_key), value in parsed.items():
+                series.setdefault((label, rank_key), []).append((iter_idx, value))
+ 
+        # Sort each series by iteration
+        for key in series:
+            series[key].sort(key=lambda p: p[0])
+ 
+        data[bitshift] = series
+ 
+    return data
+
+
+
+def filter_outliers_iqr(xs: list, ys: list) -> Tuple[list, list]:
+    """Remove outliers using the 1.5×IQR rule. Returns (xs, ys)."""
+    if len(ys) < 4:
+        return xs[:], ys[:]
+ 
+    arr = np.array(ys, dtype=float)
+    q1  = np.percentile(arr, 25)
+    q3  = np.percentile(arr, 75)
+    iqr = q3 - q1
+ 
+    if iqr == 0:
+        return xs[:], ys[:]
+ 
+    lo, hi = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+    pairs  = [(x, y) for x, y in zip(xs, ys) if lo <= y <= hi]
+    if not pairs:
+        return [], []
+    
+    return [p[0] for p in pairs], [p[1] for p in pairs]
 
 
 def extract_bank_idle_vals(txt_path: Path):
@@ -97,255 +281,127 @@ def collect_data(main_dir: Path):
             continue
 
         bitshift = int(m.group(1))
-        data[bitshift] = []
-
+        series: dict[tuple, list] = {}
+ 
         for sub in sorted(child.iterdir()):
             if not sub.is_dir():
                 continue
-
             iter_idx = extract_iter_x(sub.name)
             if iter_idx is None:
                 continue
-
+ 
             txt_path = sub / "dramsim3.txt"
             if not txt_path.exists():
                 print(f"warning: missing {txt_path}")
                 continue
-
-            bank0, bank1 = extract_bank_idle_vals(txt_path)
-            if bank0 is None or bank1 is None:
-                print(f"warning: could not find both bank idle values in {txt_path}")
+ 
+            parsed = parse_stat_file(txt_path)
+            if not parsed:
+                print(f"warning: no configured stats found in {txt_path}")
                 continue
-
-            data[bitshift].append((iter_idx, bank0, bank1))
-
-        data[bitshift].sort(key=lambda x: x[0])
-
+ 
+            for (label, rank_key), value in parsed.items():
+                series.setdefault((label, rank_key), []).append((iter_idx, value))
+ 
+        # Sort each series by iteration
+        for key in series:
+            series[key].sort(key=lambda p: p[0])
+ 
+        data[bitshift] = series
+ 
     return data
 
+def filter_outliers_iqr(xs: list, ys: list) -> Tuple[list, list]:
+    """Remove outliers using the 1.5×IQR rule. Returns (xs, ys)."""
+    if len(ys) < 4:
+        return xs[:], ys[:]
+ 
+    arr = np.array(ys, dtype=float)
+    q1  = np.percentile(arr, 25)
+    q3  = np.percentile(arr, 75)
+    iqr = q3 - q1
+ 
+    if iqr == 0:
+        return xs[:], ys[:]
+ 
+    lo, hi = q1 - 1.5 * iqr, q3 + 1.5 * iqr
+    pairs  = [(x, y) for x, y in zip(xs, ys) if lo <= y <= hi]
+    if not pairs:
+        return [], []
+    return [p[0] for p in pairs], [p[1] for p in pairs]
 
-def save_plots(data, outdir: Path):
-    outdir.mkdir(parents=True, exist_ok=True)
 
-    def filter_outliers_iqr(xs, ys):
-        """
-        More stable IQR filter using numpy percentiles.
-        Returns filtered (xs, ys).
-        """
-        if len(ys) < 4:
-            return xs[:], ys[:]  # not enough points to filter sensibly
+def _series_label(label: str, rank_key: Optional[int]) -> str:
+    """Human-readable series label for plot legend / dump header."""
+    if rank_key is None:
+        return label
+    return f"{label} rank{rank_key}"
 
-        arr = np.array(ys, dtype=float)
-        q1 = np.percentile(arr, 25)
-        q3 = np.percentile(arr, 75)
-        iqr = q3 - q1
-
-        # If everything is nearly identical, keep all points
-        if iqr == 0:
-            return xs[:], ys[:]
-
-        lower = q1 - 1.5 * iqr
-        upper = q3 + 1.5 * iqr
-
-        filtered = [(x, y) for x, y in zip(xs, ys) if lower <= y <= upper]
-        if not filtered:
-            return [], []
-
-        filtered_xs = [p[0] for p in filtered]
-        filtered_ys = [p[1] for p in filtered]
-        return filtered_xs, filtered_ys
-
-    def write_series_dump(filepath, title, rank_idx=None, filtered=False, combined=False):
-        with open(filepath, "w", encoding="utf-8") as f:
-            f.write(title + "\n")
-            f.write("=" * len(title) + "\n\n")
-
-            for bitshift in sorted(data.keys()):
-                points = data[bitshift]
-                if not points:
-                    f.write(f"bitshift {bitshift}: no data\n\n")
-                    continue
-
-                xs = [p[0] for p in points]
-                ys0 = [p[1] for p in points]
-                ys1 = [p[2] for p in points]
-
-                if combined:
-                    if filtered:
-                        xs0, fys0 = filter_outliers_iqr(xs, ys0)
-                        xs1, fys1 = filter_outliers_iqr(xs, ys1)
-                    else:
-                        xs0, fys0 = xs[:], ys0[:]
-                        xs1, fys1 = xs[:], ys1[:]
-
-                    f.write(f"bitshift {bitshift} rank0: kept {len(fys0)} / {len(ys0)} points\n")
-                    for x, y in zip(xs0, fys0):
-                        f.write(f"  iter={x} value={y}\n")
-                    f.write("\n")
-
-                    f.write(f"bitshift {bitshift} rank1: kept {len(fys1)} / {len(ys1)} points\n")
-                    for x, y in zip(xs1, fys1):
-                        f.write(f"  iter={x} value={y}\n")
-                    f.write("\n")
-                else:
-                    ys = ys0 if rank_idx == 0 else ys1
-                    if filtered:
-                        fxs, fys = filter_outliers_iqr(xs, ys)
-                    else:
-                        fxs, fys = xs[:], ys[:]
-
-                    f.write(f"bitshift {bitshift}: kept {len(fys)} / {len(ys)} points\n")
-                    for x, y in zip(fxs, fys):
-                        f.write(f"  iter={x} value={y}\n")
-                    f.write("\n")
-
-    def make_plot(rank_idx, title, ylabel, filename, filtered=False, dump_filename=None):
-        plt.figure(figsize=(10, 6))
-
-        summary_lines = []
-
-        for bitshift in sorted(data.keys()):
-            points = data[bitshift]
-            if not points:
-                summary_lines.append(f"bitshift {bitshift}: no data")
-                continue
-
-            xs = [p[0] for p in points]
-            ys = [p[1] if rank_idx == 0 else p[2] for p in points]
-
-            original_n = len(ys)
-            if filtered:
-                xs, ys = filter_outliers_iqr(xs, ys)
-
-            kept_n = len(ys)
-            summary_lines.append(f"bitshift {bitshift}: kept {kept_n}/{original_n}")
-
-            if not xs:
-                continue
-
-            plt.plot(xs, ys, marker="o", label=f"bitshift {bitshift}")
-
-        plt.xlabel("Iteration")
-        plt.ylabel(ylabel)
-        plt.title(title + (" (Outliers Removed)" if filtered else ""))
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-        plt.savefig(outdir / filename, dpi=200)
-        plt.close()
-
-        if dump_filename is not None:
-            write_series_dump(
-                outdir / dump_filename,
-                title + (" (Outliers Removed)" if filtered else ""),
-                rank_idx=rank_idx,
-                filtered=filtered,
-                combined=False,
-            )
-
-        print(f"{filename}:")
-        for line in summary_lines:
-            print("  " + line)
-
-    # Rank 0 raw + filtered
-    make_plot(
-        rank_idx=0,
-        title="DRAMSim3 all_bank_idle_cycles.0 vs Iteration",
-        ylabel="all_bank_idle_cycles.0",
-        filename="rank0.png",
-        filtered=False,
-        dump_filename="rank0_values.txt",
-    )
-
-    make_plot(
-        rank_idx=0,
-        title="DRAMSim3 all_bank_idle_cycles.0 vs Iteration",
-        ylabel="all_bank_idle_cycles.0",
-        filename="rank0_filtered.png",
-        filtered=True,
-        dump_filename="rank0_filtered_values.txt",
-    )
-
-    # Rank 1 raw + filtered
-    make_plot(
-        rank_idx=1,
-        title="DRAMSim3 all_bank_idle_cycles.1 vs Iteration",
-        ylabel="all_bank_idle_cycles.1",
-        filename="rank1.png",
-        filtered=False,
-        dump_filename="rank1_values.txt",
-    )
-
-    make_plot(
-        rank_idx=1,
-        title="DRAMSim3 all_bank_idle_cycles.1 vs Iteration",
-        ylabel="all_bank_idle_cycles.1",
-        filename="rank1_filtered.png",
-        filtered=True,
-        dump_filename="rank1_filtered_values.txt",
-    )
-
-    def make_combined(filtered=False):
-        plt.figure(figsize=(12, 7))
-        summary_lines = []
-
-        for bitshift in sorted(data.keys()):
-            points = data[bitshift]
-            if not points:
-                summary_lines.append(f"bitshift {bitshift}: no data")
-                continue
-
-            xs = [p[0] for p in points]
-            ys0 = [p[1] for p in points]
-            ys1 = [p[2] for p in points]
-
-            original_n0 = len(ys0)
-            original_n1 = len(ys1)
-
-            if filtered:
-                xs0, ys0 = filter_outliers_iqr(xs, ys0)
-                xs1, ys1 = filter_outliers_iqr(xs, ys1)
-            else:
-                xs0, xs1 = xs[:], xs[:]
-
-            summary_lines.append(
-                f"bitshift {bitshift}: rank0 kept {len(ys0)}/{original_n0}, "
-                f"rank1 kept {len(ys1)}/{original_n1}"
-            )
-
-            if xs0:
-                plt.plot(xs0, ys0, marker="o", label=f"bitshift {bitshift} rank0")
-            if xs1:
-                plt.plot(xs1, ys1, marker="x", label=f"bitshift {bitshift} rank1")
-
-        plt.xlabel("Iteration")
-        plt.ylabel("all_bank_idle_cycles")
-        plt.title("DRAMSim3 all_bank_idle_cycles vs Iteration" +
-                  (" (Outliers Removed)" if filtered else ""))
-        plt.legend()
-        plt.grid(True)
-        plt.tight_layout()
-
-        fname = "combined_filtered.png" if filtered else "combined.png"
-        dump_name = "combined_filtered_values.txt" if filtered else "combined_values.txt"
-
-        plt.savefig(outdir / fname, dpi=200)
-        plt.close()
-
-        write_series_dump(
-            outdir / dump_name,
-            "DRAMSim3 all_bank_idle_cycles vs Iteration" +
-            (" (Outliers Removed)" if filtered else ""),
-            filtered=filtered,
-            combined=True,
+def make_plot(data: dict, label: str, rank_key: Optional[int],
+              outdir: Path, filtered: bool,) -> None:
+    
+    """Produce one PNG for a single (label, rank_key) stat."""
+    cfg    = STATS_CONFIG[label]
+    ylabel = cfg.get("ylabel", cfg["key"])
+    suffix = " (Outliers Removed)" if filtered else ""
+    ranked_tag = "" if rank_key is None else f" Rank {rank_key}"
+    title  = f"{label}{ranked_tag} vs Iteration{suffix}"
+ 
+    slug       = re.sub(r"[^a-z0-9]+", "_", label.lower()).strip("_")
+    rank_str   = "" if rank_key is None else f"_rank{rank_key}"
+    filt_str   = "_filtered" if filtered else ""
+    filename   = f"{slug}{rank_str}{filt_str}.png"
+    dump_name  = f"{slug}{rank_str}{filt_str}_values.txt"
+ 
+    plt.figure(figsize=(10, 6))
+    dump_lines: list[str] = [title, "=" * len(title), ""]
+ 
+    for bitshift in sorted(data.keys()):
+        series = data[bitshift]
+        points = series.get((label, rank_key), [])
+ 
+        if not points:
+            dump_lines.append(f"bitshift {bitshift}: no data\n")
+            continue
+ 
+        xs = [p[0] for p in points]
+        ys = [p[1] for p in points]
+        original_n = len(ys)
+ 
+        if filtered:
+            xs, ys = filter_outliers_iqr(xs, ys)
+ 
+        dump_lines.append(
+            f"bitshift {bitshift}: kept {len(ys)}/{original_n}"
         )
+        for x, y in zip(xs, ys):
+            dump_lines.append(f"  iter={x}  value={y}")
+        dump_lines.append("")
+ 
+        if xs:
+            plt.plot(xs, ys, marker="o", label=f"bitshift {bitshift}")
+ 
+    plt.xlabel("Iteration")
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(outdir / filename, dpi=200)
+    plt.close()
+ 
+    (outdir / dump_name).write_text("\n".join(dump_lines), encoding="utf-8")
+    print(f"  saved: {filename}")
 
-        print(f"{fname}:")
-        for line in summary_lines:
-            print("  " + line)
 
-    make_combined(filtered=False)
-    make_combined(filtered=True)
+def save_plots(data: dict, outdir: Path) -> None:
+    outdir.mkdir(parents=True, exist_ok=True)
+ 
+    for label, info in COMPILED.items():
+        print(f"\n[{label}]")
+        for rank_key in info["patterns"]:
+            for filtered in (False, True):
+                make_plot(data, label, rank_key, outdir, filtered)
 
 def main():
     parser = argparse.ArgumentParser(
@@ -365,17 +421,21 @@ def main():
     main_dir = Path(args.main_dir)
     outdir = Path(args.outdir)
 
-    if not main_dir.exists() or not main_dir.is_dir():
-        raise SystemExit(f"error: main_dir does not exist or is not a directory: {main_dir}")
-
+    print(f"Collecting stats from: {main_dir}")
+    print(f"Configured stats ({len(STATS_CONFIG)}):")
+    for lbl, cfg in STATS_CONFIG.items():
+        ranked_str = "ranked (rank0 + rank1)" if cfg.get("ranked", True) else "unranked"
+        print(f"  {lbl!r} → key={cfg['key']!r}, {ranked_str}")
+ 
     data = collect_data(main_dir)
-
+ 
     if not data:
-        raise SystemExit("error: no matching dramsim3_bitshift* directories found")
-
+        raise SystemExit("error: no matching dramsim_results_bitshift_* directories found")
+ 
+    print(f"\nSaving plots to: {outdir}/")
     save_plots(data, outdir)
-    print(f"saved plots to: {outdir}")
-
+    print(f"\nDone. All output in: {outdir}/")
+ 
 
 if __name__ == "__main__":
     main()
