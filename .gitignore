@@ -4,7 +4,8 @@ amr_workload/dramsim3_tracechunks/*
 
 fft_workload/*.trace
 fft_workload/chunk_traces/*
-fft_workload/fft_gem5_output/*
+fft_workload/m5out_fft/*
+fft_workload/dramsim_results/*
 
 dramsim3.trace
 bfs

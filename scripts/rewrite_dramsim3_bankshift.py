@@ -87,7 +87,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 
 
-TRACE_RE = re.compile(r"^\s*(0x[0-9a-fA-F]+)\s+(READ|WRITE)\s+(\d+)\s*$")
+# TRACE_RE = re.compile(r"^\s*(0x[0-9a-fA-F]+)\s+(READ|WRITE)\s+(\d+)\s*$")
+TRACE_RE = re.compile(r'^(\d+) ([rw]) (\d+)$')
 
 
 @dataclass
