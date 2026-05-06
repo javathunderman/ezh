@@ -17,6 +17,8 @@ RUN apt-get update && apt-get install -y \
     libboost-all-dev \ 
     pkg-config \ 
     graphviz \
+    libhdf5-dev \
+    libpng-dev \
     python3-pip
 
 RUN python3 -m pip install pydot
