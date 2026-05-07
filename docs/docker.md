@@ -1,6 +1,6 @@
 Execute from root directory:
 
-To build: `docker run -t ezh-dev .`
+To build: `docker build -t ezh-dev .`
 To run the container: `docker run -it -v .:/ezh ezh-dev`
 
 If you get warnings that libpng and libhd5 headers are missing, this is likely due to a previous build that ran when libpng-dev or libhd5-dev were not installed (this should now be fixed in the Dockerfile). 
