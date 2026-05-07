@@ -1,0 +1,110 @@
+Rank Active Cycles Rank 0 vs Iteration
+======================================
+
+bitshift 0: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 2: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 4: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 6: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 8: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 10: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 12: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 14: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0
+
+bitshift 16: kept 10/10
+  iter=0  value=5603429.0
+  iter=1  value=5599338.0
+  iter=2  value=5596038.0
+  iter=3  value=5598391.0
+  iter=4  value=5603144.0
+  iter=5  value=5595443.0
+  iter=6  value=5583388.0
+  iter=7  value=5588910.0
+  iter=8  value=5593706.0
+  iter=9  value=5583872.0

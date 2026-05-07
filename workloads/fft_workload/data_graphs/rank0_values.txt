@@ -1,0 +1,111 @@
+DRAMSim3 all_bank_idle_cycles.0 vs Iteration
+============================================
+
+bitshift 0: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 2: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 4: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 6: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 8: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 10: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 12: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 14: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
+bitshift 16: kept 10 / 10 points
+  iter=0 value=275159
+  iter=1 value=279250
+  iter=2 value=282550
+  iter=3 value=280197
+  iter=4 value=275444
+  iter=5 value=283145
+  iter=6 value=295200
+  iter=7 value=289678
+  iter=8 value=284882
+  iter=9 value=294716
+
