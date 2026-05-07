@@ -19,10 +19,17 @@ RUN apt-get update && apt-get install -y \
     graphviz \
     libhdf5-dev \
     libpng-dev \
-    python3-pip
+    python3-pip \
+    cmake \
+    wget
 
 RUN python3 -m pip install pydot
 RUN python3 -m pip install scons==3.1.2
+RUN cd /mold && wget https://github.com/rui314/mold/releases/download/v2.41.0/mold-2.41.0-x86_64-linux.tar.gz
+RUN cp -r mold-2.41.0-x86_64-linux/bin /usr
+RUN cp -r mold-2.41.0-x86_64-linux/lib /usr
+RUN cp -r mold-2.41.0-x86_64-linux/libexec /usr
+RUN cp -r mold-2.41.0-x86_64-linux/share /usr
 WORKDIR /ezh
 RUN git config --global --add safe.directory /ezh
 RUN git config --global --add safe.directory /ezh/gem5
