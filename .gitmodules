@@ -3,4 +3,4 @@
 	url = git@github.com:/javathunderman/gem5.git
 [submodule "DRAMsim3"]
 	path = DRAMsim3
-	url = https://github.com/VerdantLeaf/DRAMsim3.git
+	url = git@github.com:VerdantLeaf/DRAMsim3.git
