@@ -39,4 +39,3 @@ do
     done
     # ./ezh/DRAMsim3/build/dramsim3main ../configs/DDR4_8Gb_x8_3200.ini -c 807816 -t /ezh/workloads/graph_workloads/chunk_traces/graph_coarsening_trace_chunks_$i/iter_000006_cycles_792649_807816.trace -o /ezh/workloads/graph_workloads/dramsim_results/dramsim_results_bitshift_$i/dramsim_results_6
 done
-mv /ezh/dram_opt_markers* /ezh/workloads/graph_workloads

@@ -82,8 +82,9 @@ def parse_line(line: str, lineno: int):
     addr = int(parts[2], 0)
     size = int(parts[3], 0)
     tick = int(parts[5], 0)
+    opt_flag = int(parts[6], 0)
 
-    return cmd, addr, size, tick
+    return cmd, addr, size, tick, opt_flag
 
 
 def find_long_runs(addrs, threshold):
@@ -129,7 +130,7 @@ def main():
                 continue
 
             try:
-                cmd, addr, size, tick = parse_line(line, lineno)
+                cmd, addr, size, tick, opt_flag = parse_line(line, lineno)
             except Exception as e:
                 print(f"Skipping line {lineno}: {e}", file=sys.stderr)
                 continue
@@ -137,8 +138,8 @@ def main():
             norm_addr = normalize_addr(addr, args.addr_base, args.line_size)
             cycle = tick_to_cycle(tick, args.tick_ps, args.tck_ps)
 
-            converted.append((norm_addr, cmd, cycle, size, lineno))
-            out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle}")
+            converted.append((norm_addr, cmd, cycle, size, lineno, opt_flag))
+            out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle} {opt_flag}")
 
     with open(args.output, "w", encoding="utf-8") as f:
         for line in out_lines:
