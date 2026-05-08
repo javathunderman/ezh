@@ -4,8 +4,8 @@ gem5 is copyrighted software; use the --copyright option for details.
 
 gem5 version 22.0.0.1
 gem5 compiled May  8 2026 14:16:28
-gem5 started May  8 2026 15:32:47
-gem5 executing on OmenK, pid 87314
+gem5 started May  8 2026 16:14:02
+gem5 executing on OmenK, pid 99340
 command line: /home/kcj4/ezh/gem5/build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/home/kcj4/ezh/workloads/graph_workloads/m5out_graph_coarsening /home/kcj4/ezh/gem5/configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --num-cpus=1 --mem-size=2147483648 --cmd=/home/kcj4/ezh/workloads/graph_workloads/graph_coarsening
 
 Beginning simulation!
