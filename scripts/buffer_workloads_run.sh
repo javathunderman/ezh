@@ -19,6 +19,8 @@ RAW_TRACE=$WORKLOAD_DIR/${WORKLOAD_NAME}_log_raw_trace
 DRAMSIM_TRACE=$WORKLOAD_DIR/${WORKLOAD_NAME}_dramsim3.trace
 DRAMSIM_RESULTS=$WORKLOAD_DIR/dramsim_results
 
+DRAM_CONFIG=DDR4_8Gb_x8_3200
+
 # echo "Source:   $WORKLOAD_SRC"
 # echo "Include:  $GEM5_DIR/include"
 # echo "Lib:      $GEM5_DIR/util/m5/build/x86/out"
@@ -64,15 +66,11 @@ final_cycle=$(tail -n 1 $DRAMSIM_TRACE | awk '{print $3}')
 
 mkdir -p $DRAMSIM_RESULTS
 $DRAMSIM_DIR/build/dramsim3main \
-    $DRAMSIM_DIR/configs/DDR4_8Gb_x8_3200.ini \
+    $DRAMSIM_DIR/configs/$DRAM_CONFIG.ini \
     -c $final_cycle \
     -t $DRAMSIM_TRACE \
-    -o $DRAMSIM_RESULTS
+    -o $DRAMSIM_RESULTS \
+    --enable_buffering
 
 echo "===================== DRAMSim simulation complete ====================="
-
-
-
-
-
 
