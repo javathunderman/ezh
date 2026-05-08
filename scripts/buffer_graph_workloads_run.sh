@@ -43,8 +43,8 @@ $GEM5_DIR/build/X86/gem5.opt \
     --cpu-clock=4GHz \
     --cacheline_size=64 \
     --num-cpus=1 \
+    --mem-size=2147483648 \
     --cmd=$WORKLOAD_BIN > $WORKLOAD_DIR/${WORKLOAD_NAME}_log.txt
-
 
 echo "===================== Gem5 Sim complete ====================="
 
@@ -60,7 +60,7 @@ python3 $SCRIPTS_DIR/convert_trace.py \
 echo "===================== Trace conversion complete ====================="
 
 
-final_cycle=$(tail -n 1 $DRAMSIM_TRACE | awk '{print $1}')
+final_cycle=$(tail -n 1 $DRAMSIM_TRACE | awk '{print $3}')
 
 mkdir -p $DRAMSIM_RESULTS
 $DRAMSIM_DIR/build/dramsim3main \

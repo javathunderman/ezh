@@ -3,35 +3,47 @@ gem5 Simulator System.  https://www.gem5.org
 gem5 is copyrighted software; use the --copyright option for details.
 
 gem5 version 22.0.0.1
-gem5 compiled May  6 2026 19:41:12
-gem5 started May  7 2026 06:34:57
-gem5 executing on abbbf075eaa9, pid 90599
-command line: build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/ezh/workloads/graph_workloads/m5out_graph_coarsening/ configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --num-cpus=1 --cmd=/ezh/workloads/graph_workloads/graph_coarsening
+gem5 compiled May  8 2026 14:16:28
+gem5 started May  8 2026 14:29:49
+gem5 executing on OmenK, pid 67470
+command line: /home/kcj4/ezh/gem5/build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/home/kcj4/ezh/workloads/graph_workloads/m5out_graph_coarsening /home/kcj4/ezh/gem5/configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --num-cpus=1 --mem-size=2147483648 --cmd=/home/kcj4/ezh/workloads/graph_workloads/graph_coarsening
 
 Beginning simulation!
-EXIT: tick=66761250 cause=workbegin code=0
-ITER_BEGIN t=0 tick=66761250
-EXIT: tick=368506500 cause=workend code=0
-ITER_END   t=0 tick=368506500
-EXIT: tick=368514250 cause=workbegin code=1
-ITER_BEGIN t=1 tick=368514250
-EXIT: tick=484770500 cause=workend code=1
-ITER_END   t=1 tick=484770500
-EXIT: tick=484778250 cause=workbegin code=2
-ITER_BEGIN t=2 tick=484778250
-EXIT: tick=545163250 cause=workend code=2
-ITER_END   t=2 tick=545163250
-EXIT: tick=545171000 cause=workbegin code=3
-ITER_BEGIN t=3 tick=545171000
-EXIT: tick=587415250 cause=workend code=3
-ITER_END   t=3 tick=587415250
-EXIT: tick=587423000 cause=workbegin code=4
-ITER_BEGIN t=4 tick=587423000
-EXIT: tick=621872250 cause=workend code=4
-ITER_END   t=4 tick=621872250
-EXIT: tick=621880000 cause=workbegin code=5
-ITER_BEGIN t=5 tick=621880000
-EXIT: tick=652014500 cause=workend code=5
-ITER_END   t=5 tick=652014500
-EXIT: tick=652023000 cause=exiting with last active thread context code=0
-Program finished at tick 652023000
+EXIT: tick=66029500 cause=workbegin code=0
+ITER_BEGIN t=0 tick=66029500
+66040500: global: pseudo_inst::dram_opt_enter(0, 0)
+367775750: global: DRAM opt exit workid: 0, threadid 0
+EXIT: tick=367783000 cause=workend code=0
+ITER_END   t=0 tick=367783000
+EXIT: tick=367791000 cause=workbegin code=1
+ITER_BEGIN t=1 tick=367791000
+367802000: global: pseudo_inst::dram_opt_enter(1, 0)
+484048250: global: DRAM opt exit workid: 1, threadid 0
+EXIT: tick=484055500 cause=workend code=1
+ITER_END   t=1 tick=484055500
+EXIT: tick=484063500 cause=workbegin code=2
+ITER_BEGIN t=2 tick=484063500
+484074500: global: pseudo_inst::dram_opt_enter(2, 0)
+544449500: global: DRAM opt exit workid: 2, threadid 0
+EXIT: tick=544456750 cause=workend code=2
+ITER_END   t=2 tick=544456750
+EXIT: tick=544464750 cause=workbegin code=3
+ITER_BEGIN t=3 tick=544464750
+544475750: global: pseudo_inst::dram_opt_enter(3, 0)
+586710000: global: DRAM opt exit workid: 3, threadid 0
+EXIT: tick=586717250 cause=workend code=3
+ITER_END   t=3 tick=586717250
+EXIT: tick=586725250 cause=workbegin code=4
+ITER_BEGIN t=4 tick=586725250
+586736250: global: pseudo_inst::dram_opt_enter(4, 0)
+621175500: global: DRAM opt exit workid: 4, threadid 0
+EXIT: tick=621182750 cause=workend code=4
+ITER_END   t=4 tick=621182750
+EXIT: tick=621190750 cause=workbegin code=5
+ITER_BEGIN t=5 tick=621190750
+621201750: global: pseudo_inst::dram_opt_enter(5, 0)
+651325750: global: DRAM opt exit workid: 5, threadid 0
+EXIT: tick=651332750 cause=workend code=5
+ITER_END   t=5 tick=651332750
+EXIT: tick=651340500 cause=exiting with last active thread context code=0
+Program finished at tick 651340500
