@@ -60,7 +60,7 @@ python3 $SCRIPTS_DIR/convert_trace.py \
 echo "===================== Trace conversion complete ====================="
 
 
-final_cycle=$(tail -n 1 tracefile.txt | awk '{print $1}')
+final_cycle=$(tail -n 1 $DRAMSIM_TRACE | awk '{print $1}')
 
 mkdir -p $DRAMSIM_RESULTS
 $DRAMSIM_DIR/build/dramsim3main \
