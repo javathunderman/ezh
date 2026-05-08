@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Run this in the scripts repo
+
 set -e 
 
 # Set vars
@@ -84,20 +86,24 @@ $DRAMSIM_DIR/build/dramsim3main \
     $DRAMSIM_DIR/configs/$DRAM_CONFIG.ini \
     -c $final_cycle \
     -t $DRAMSIM_TRACE \
-    -o $DRAMSIM_RESULTS
+    -o $DRAMSIM_RESULTS \
+    --enable_buffering
 
 $DRAMSIM_DIR/build/dramsim3main \
     $DRAMSIM_DIR/configs/${DRAM_CONFIG}_unified.ini \
     -c $final_cycle \
     -t $DRAMSIM_TRACE \
-    -o $UNIFIED_DRAMSIM_RESULTS
+    -o $UNIFIED_DRAMSIM_RESULTS \
+    --enable_buffering
 
 $DRAMSIM_DIR/build/dramsim3main \
     $DRAMSIM_DIR/configs/${DRAM_CONFIG}_non_unified.ini \
     -c $final_cycle \
     -t $DRAMSIM_TRACE \
-    -o $NONUNIFIED_DRAMSIM_RESULTS
+    -o $NONUNIFIED_DRAMSIM_RESULTS \
+    --enable_buffering
 
 echo "===================== DRAMSim simulations complete ====================="
 
 
+# todo: Run scape and plot.py 
