@@ -18,8 +18,10 @@ Commit changes to root repo: `git commit -m "Root commit message"`
 
 Push to remote root: `git push`
 
+### Both remotes are now updated
 
+If you fall off a branch: `git checkout master`  
 
-If you fall off a branch: `git checkout master`
-If you need to undo a commit + unstage:  `git reset HEAD~1`
-                       " + not unstage:  `git reset --soft HEAD~1`
+If you need to undo a commit + unstage:  `git reset HEAD~1`  
+
+If you need to undo a commit + not unstage:  `git reset --soft HEAD~1`
