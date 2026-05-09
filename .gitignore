@@ -1,15 +1,15 @@
 build/
 
-amr_workload/dramsim3_tracechunks/*
+# Depreciated dirs, get rid of once fft/bfs analysis complete - or removed
+bfs_workload
+fft_workload
 
-fft_workload/*.trace
-fft_workload/chunk_traces/*
-fft_workload/m5out_fft/*
-fft_workload/dramsim_results/*
+# Remove m5 outputs and traces -- files too big
+workloads/graph_workloads/m5out*
+workloads/graph_workloads/*trace
 
-dramsim3.trace
-bfs
+workloads/fft_workload/m5out*
+workloads/fft_workload/*trace
 
-graph_coarsening_dramsim3.trace
-graph_coarsening_log_ascii_trace
-graph_coarsening_log_417
+workloads/amr_workloads/m5out*
+workloads/amr_workloads/*trace
