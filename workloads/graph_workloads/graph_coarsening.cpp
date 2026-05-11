@@ -131,9 +131,9 @@ int multilevel_coarsen(Graph levels[MAX_LEVELS]) {
         Graph* coarse = &levels[level + 1];
 
         int prev_nodes = fine->num_nodes;
-        m5_dram_opt_enter(level, 0);
+        m5_dram_opt_enter(level, 0, &levels[level], sizeof(Graph) * 2);
         int new_nodes = coarsen_once(fine, coarse);
-        m5_dram_opt_exit(level, 0);
+        m5_dram_opt_exit(level, 0, &levels[level], sizeof(Graph) * 2);
         // Stopping conditions
         if (new_nodes >= prev_nodes) break;
         if (new_nodes <= MIN_COARSE_SIZE) break;
