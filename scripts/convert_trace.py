@@ -147,7 +147,7 @@ def main():
                 out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle} {opt_stream_id} {opt_stream_size} {opt_flag}")
             else:
                 converted.append((norm_addr, cmd, cycle, size, lineno, opt_stream_id, opt_flag))
-                out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle} {opt_stream_id} {opt_flag}")
+                out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle} 0 0 0")
 
     with open(args.output, "w", encoding="utf-8") as f:
         for line in out_lines:
