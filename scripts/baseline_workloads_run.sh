@@ -78,9 +78,9 @@ awk '$4 != 0' $DRAMSIM_TRACE
 
 final_cycle=$(tail -n 1 $DRAMSIM_TRACE | awk '{print $3}')
 
-# ((final_cycle += 10000000))
+((final_cycle += 10,000,000))
 
-echo "Simulating $final_cycle cycles"
+echo -e "Simulating $final_cycle cycles\n"
 
 mkdir -p $DRAMSIM_RESULTS
 mkdir -p $UNIFIED_DRAMSIM_RESULTS
