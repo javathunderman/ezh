@@ -73,8 +73,6 @@ def tick_to_cycle(tick: int, tick_ps: float, tck_ps: float) -> int:
 
 def parse_line(line: str, lineno: int):
     parts = [x.strip() for x in line.split(",")]
-    if len(parts) < 6:
-        raise ValueError(f"Line {lineno}: expected at least 6 comma-separated fields, got {len(parts)}")
 
     # Expected format:
     # requestor_id, cmd, addr, size, misc, tick
@@ -82,9 +80,13 @@ def parse_line(line: str, lineno: int):
     addr = int(parts[2], 0)
     size = int(parts[3], 0)
     tick = int(parts[5], 0)
-    opt_flag = int(parts[6], 0)
-
-    return cmd, addr, size, tick, opt_flag
+    opt_stream_id = int(parts[6], 0)
+    opt_flag = int(parts[7], 0)
+    if (len(parts) == 9):
+        opt_stream_size = int(parts[8])
+        return cmd, addr, size, tick, opt_stream_id, opt_flag, opt_stream_size
+    else:
+        return cmd, addr, size, tick, opt_stream_id, opt_flag
 
 
 def find_long_runs(addrs, threshold):
@@ -128,18 +130,24 @@ def main():
                 continue
             if line.startswith("#"):
                 continue
-
+            parts = [x.strip() for x in line.split(",")]
             try:
-                cmd, addr, size, tick, opt_flag = parse_line(line, lineno)
+                if (len(parts) == 9):
+                    cmd, addr, size, tick, opt_stream_id, opt_flag, opt_stream_size = parse_line(line, lineno)
+                else:
+                    cmd, addr, size, tick, opt_stream_id, opt_flag = parse_line(line, lineno)
             except Exception as e:
                 print(f"Skipping line {lineno}: {e}", file=sys.stderr)
                 continue
 
             norm_addr = normalize_addr(addr, args.addr_base, args.line_size)
             cycle = tick_to_cycle(tick, args.tick_ps, args.tck_ps)
-
-            converted.append((norm_addr, cmd, cycle, size, lineno, opt_flag))
-            out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle} {opt_flag}")
+            if (len(parts) == 9):
+                converted.append((norm_addr, cmd, cycle, size, lineno, opt_stream_id, opt_stream_size, opt_flag))
+                out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle} {opt_stream_id} {opt_stream_size} {opt_flag}")
+            else:
+                converted.append((norm_addr, cmd, cycle, size, lineno, opt_stream_id, opt_flag))
+                out_lines.append(f"0x{norm_addr:08X} {cmd} {cycle} {opt_stream_id} {opt_flag}")
 
     with open(args.output, "w", encoding="utf-8") as f:
         for line in out_lines:
