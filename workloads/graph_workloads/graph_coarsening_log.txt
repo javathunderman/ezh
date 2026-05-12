@@ -4,70 +4,70 @@ gem5 is copyrighted software; use the --copyright option for details.
 
 gem5 version 22.0.0.1
 gem5 compiled May 11 2026 21:14:56
-gem5 started May 11 2026 21:18:34
-gem5 executing on faa4f1786979, pid 401690
-command line: build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/ezh/workloads/graph_workloads/m5out_graph_coarsening/ configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --num-cpus=1 --cmd=/ezh/workloads/graph_workloads/graph_coarsening
+gem5 started May 12 2026 20:54:58
+gem5 executing on faa4f1786979, pid 795568
+command line: /ezh/gem5/build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/ezh/workloads/graph_workloads/m5out_graph_coarsening /ezh/gem5/configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=1GHz --cacheline_size=64 --num-cpus=1 --mem-size=2147483648 --cmd=/ezh/workloads/graph_workloads/graph_coarsening
 
 Beginning simulation!
-EXIT: tick=66029500 cause=workbegin code=0
-ITER_BEGIN t=0 tick=66029500
-66043250: global: pseudo_inst::dram_opt_enter(0, 0)
+EXIT: tick=264118000 cause=workbegin code=0
+ITER_BEGIN t=0 tick=264118000
+264173000: global: pseudo_inst::dram_opt_enter(0, 0)
 DRAM OPT ON: vaddr=7fffffc2e408 entryPaddr=3d5408 extent= 7fffffc8fea0 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 1
-367781250: global: DRAM opt exit workid: 0, threadid 0
+1471125000: global: DRAM opt exit workid: 0, threadid 0
 DRAM OPT OFF: vaddr=7fffffc2e408 entryPaddr=3d5408 extent= 7fffffc8fea0 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 1
-EXIT: tick=367788500 cause=workend code=0
-ITER_END   t=0 tick=367788500
-EXIT: tick=367796500 cause=workbegin code=1
-ITER_BEGIN t=1 tick=367796500
-367810250: global: pseudo_inst::dram_opt_enter(1, 0)
+EXIT: tick=1471154000 cause=workend code=0
+ITER_END   t=0 tick=1471154000
+EXIT: tick=1471186000 cause=workbegin code=1
+ITER_BEGIN t=1 tick=1471186000
+1471241000: global: pseudo_inst::dram_opt_enter(1, 0)
 DRAM OPT ON: vaddr=7fffffc5f154 entryPaddr=3a4154 extent= 7fffffcc0bec inputAddr=7fffffc2e3c0
 match found, assign stream ID: 2
-484059250: global: DRAM opt exit workid: 1, threadid 0
+1936237000: global: DRAM opt exit workid: 1, threadid 0
 DRAM OPT OFF: vaddr=7fffffc5f154 entryPaddr=3a4154 extent= 7fffffcc0bec inputAddr=7fffffc2e3c0
 match found, assign stream ID: 2
-EXIT: tick=484066500 cause=workend code=1
-ITER_END   t=1 tick=484066500
-EXIT: tick=484074500 cause=workbegin code=2
-ITER_BEGIN t=2 tick=484074500
-484088250: global: pseudo_inst::dram_opt_enter(2, 0)
+EXIT: tick=1936266000 cause=workend code=1
+ITER_END   t=1 tick=1936266000
+EXIT: tick=1936298000 cause=workbegin code=2
+ITER_BEGIN t=2 tick=1936298000
+1936353000: global: pseudo_inst::dram_opt_enter(2, 0)
 DRAM OPT ON: vaddr=7fffffc8fea0 entryPaddr=374ea0 extent= 7fffffcf1938 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 3
-544466000: global: DRAM opt exit workid: 2, threadid 0
+2177864000: global: DRAM opt exit workid: 2, threadid 0
 DRAM OPT OFF: vaddr=7fffffc8fea0 entryPaddr=374ea0 extent= 7fffffcf1938 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 3
-EXIT: tick=544473250 cause=workend code=2
-ITER_END   t=2 tick=544473250
-EXIT: tick=544481250 cause=workbegin code=3
-ITER_BEGIN t=3 tick=544481250
-544495000: global: pseudo_inst::dram_opt_enter(3, 0)
+EXIT: tick=2177893000 cause=workend code=2
+ITER_END   t=2 tick=2177893000
+EXIT: tick=2177925000 cause=workbegin code=3
+ITER_BEGIN t=3 tick=2177925000
+2177980000: global: pseudo_inst::dram_opt_enter(3, 0)
 DRAM OPT ON: vaddr=7fffffcc0bec entryPaddr=343bec extent= 7fffffd22684 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 4
-586732000: global: DRAM opt exit workid: 3, threadid 0
+2346928000: global: DRAM opt exit workid: 3, threadid 0
 DRAM OPT OFF: vaddr=7fffffcc0bec entryPaddr=343bec extent= 7fffffd22684 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 4
-EXIT: tick=586739250 cause=workend code=3
-ITER_END   t=3 tick=586739250
-EXIT: tick=586747250 cause=workbegin code=4
-ITER_BEGIN t=4 tick=586747250
-586761000: global: pseudo_inst::dram_opt_enter(4, 0)
+EXIT: tick=2346957000 cause=workend code=3
+ITER_END   t=3 tick=2346957000
+EXIT: tick=2346989000 cause=workbegin code=4
+ITER_BEGIN t=4 tick=2346989000
+2347044000: global: pseudo_inst::dram_opt_enter(4, 0)
 DRAM OPT ON: vaddr=7fffffcf1938 entryPaddr=312938 extent= 7fffffd533d0 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 5
-621203000: global: DRAM opt exit workid: 4, threadid 0
+2484812000: global: DRAM opt exit workid: 4, threadid 0
 DRAM OPT OFF: vaddr=7fffffcf1938 entryPaddr=312938 extent= 7fffffd533d0 inputAddr=7fffffc2e3c0
 match found, assign stream ID: 5
-EXIT: tick=621210250 cause=workend code=4
-ITER_END   t=4 tick=621210250
-EXIT: tick=621218250 cause=workbegin code=5
-ITER_BEGIN t=5 tick=621218250
-621232000: global: pseudo_inst::dram_opt_enter(5, 0)
+EXIT: tick=2484841000 cause=workend code=4
+ITER_END   t=4 tick=2484841000
+EXIT: tick=2484873000 cause=workbegin code=5
+ITER_BEGIN t=5 tick=2484873000
+2484928000: global: pseudo_inst::dram_opt_enter(5, 0)
 DRAM OPT ON: vaddr=7fffffd22684 entryPaddr=2e1684 extent= 7fffffd8411c inputAddr=7fffffc2e3c0
 match found, assign stream ID: 6
-651358750: global: DRAM opt exit workid: 5, threadid 0
+2605435000: global: DRAM opt exit workid: 5, threadid 0
 DRAM OPT OFF: vaddr=7fffffd22684 entryPaddr=2e1684 extent= 7fffffd8411c inputAddr=7fffffc2e3c0
 match found, assign stream ID: 6
-EXIT: tick=651365750 cause=workend code=5
-ITER_END   t=5 tick=651365750
-EXIT: tick=651373500 cause=exiting with last active thread context code=0
-Program finished at tick 651373500
+EXIT: tick=2605463000 cause=workend code=5
+ITER_END   t=5 tick=2605463000
+EXIT: tick=2605494000 cause=exiting with last active thread context code=0
+Program finished at tick 2605494000

@@ -67,10 +67,12 @@ python3 $GEM5_DIR/util/decode_packet_trace.py \
     $RAW_TRACE
 echo "===================== Decode packet trace complete ====================="
 
-python3 $SCRIPTS_DIR/convert_trace.py \
-    $RAW_TRACE \
-    $DRAMSIM_TRACE \
-    --tck-ps 630
+# python3 $SCRIPTS_DIR/convert_trace.py \
+#     $RAW_TRACE \
+#     $DRAMSIM_TRACE \
+#     --tck-ps 630
+python3 $SCRIPTS_DIR/parse_gem5.py --gem5_trace_file $RAW_TRACE --dramsim3_trace_file $DRAMSIM_TRACE --dramsim3_tCK 0.63
+
 echo "===================== Trace conversion complete ====================="
 
 

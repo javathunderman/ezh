@@ -65,11 +65,11 @@ python3 $GEM5_DIR/util/decode_packet_trace.py \
     $RAW_TRACE
 echo "===================== Decode packet trace complete ====================="
 
-python3 $SCRIPTS_DIR/convert_trace.py \
-    $RAW_TRACE \
-    $DRAMSIM_TRACE \
-    --tck-ps 630
-
+# python3 $SCRIPTS_DIR/convert_trace.py \
+#     $RAW_TRACE \
+#     $DRAMSIM_TRACE \
+#     --tck-ps 630
+python3 $SCRIPTS_DIR/parse_gem5.py --gem5_trace_file $RAW_TRACE --dramsim3_trace_file $DRAMSIM_TRACE --dramsim3_tCK 0.63
 echo "===================== Trace conversion complete ====================="
 
 echo "===================== Finding Buffers ====================="
@@ -78,7 +78,7 @@ awk '$4 != 0' $DRAMSIM_TRACE
 
 final_cycle=$(tail -n 1 $DRAMSIM_TRACE | awk '{print $3}')
 
-((final_cycle += 10,000,000))
+# ((final_cycle += 10,000,000))
 
 echo -e "Simulating $final_cycle cycles\n"
 
