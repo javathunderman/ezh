@@ -52,7 +52,7 @@ $GEM5_DIR/build/X86/gem5.opt \
     --outdir=$M5OUT_DIR \
     $GEM5_DIR/configs/example/se.py \
     --cpu-type=AtomicSimpleCPU \
-    --cpu-clock=4GHz \
+    --cpu-clock=1GHz \
     --cacheline_size=64 \
     --num-cpus=1 \
     --mem-size=2147483648 \
@@ -69,10 +69,18 @@ python3 $SCRIPTS_DIR/convert_trace.py \
     $RAW_TRACE \
     $DRAMSIM_TRACE \
     --tck-ps 630
+
 echo "===================== Trace conversion complete ====================="
 
+echo "===================== Finding Buffers ====================="
+
+awk '$4 != 0' $DRAMSIM_TRACE
 
 final_cycle=$(tail -n 1 $DRAMSIM_TRACE | awk '{print $3}')
+
+# ((final_cycle += 10000000))
+
+echo "Simulating $final_cycle cycles"
 
 mkdir -p $DRAMSIM_RESULTS
 mkdir -p $UNIFIED_DRAMSIM_RESULTS
@@ -80,11 +88,15 @@ mkdir -p $NONUNIFIED_DRAMSIM_RESULTS
 
 # RUN EXPERIMENTS FORALL THREE QUEUE TYPES
 
+echo "===================== Beginning DRAM Sims ====================="
+
 $DRAMSIM_DIR/build/dramsim3main \
     $DRAMSIM_DIR/configs/$DRAM_CONFIG.ini \
     -c $final_cycle \
     -t $DRAMSIM_TRACE \
     -o $DRAMSIM_RESULTS
+
+echo -e "\n===================== General Sim Complete =====================\n"
 
 $DRAMSIM_DIR/build/dramsim3main \
     $DRAMSIM_DIR/configs/${DRAM_CONFIG}_unified.ini \
@@ -92,11 +104,16 @@ $DRAMSIM_DIR/build/dramsim3main \
     -t $DRAMSIM_TRACE \
     -o $UNIFIED_DRAMSIM_RESULTS
 
+echo -e "\n===================== Unified Sim Complete =====================\n"
+
 $DRAMSIM_DIR/build/dramsim3main \
     $DRAMSIM_DIR/configs/${DRAM_CONFIG}_non_unified.ini \
     -c $final_cycle \
     -t $DRAMSIM_TRACE \
     -o $NONUNIFIED_DRAMSIM_RESULTS
+
+echo -e "\n===================== Non-Unified Sim Complete =====================\n"
+
 
 # I think files should come out identical -- did for graph at least
 

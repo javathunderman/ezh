@@ -54,7 +54,7 @@ $GEM5_DIR/build/X86/gem5.opt \
     --outdir=$M5OUT_DIR \
     $GEM5_DIR/configs/example/se.py \
     --cpu-type=AtomicSimpleCPU \
-    --cpu-clock=4GHz \
+    --cpu-clock=1GHz \
     --cacheline_size=64 \
     --num-cpus=1 \
     --mem-size=2147483648 \
