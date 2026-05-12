@@ -8,3 +8,5 @@ Contributors:
 - [Alex Lee](https://github.com/alexl5-crypto)
 - [Arjun Vedantham](https://github.com/javathunderman)
 - [Kyle Jones](https://github.com/VerdantLeaf)
+
+Important: This is not the only repository for this project! We are dependent on custom versions of [gem5](https://github.com/javathunderman/gem5) and [DRAMSim3](https://github.com/VerdantLeaf/DRAMsim3/)
