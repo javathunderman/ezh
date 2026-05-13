@@ -1,9 +1,5 @@
 build/
 
-# Depreciated dirs, get rid of once fft/bfs analysis complete - or removed
-bfs_workload
-fft_workload
-
 # Remove m5 outputs and traces -- files too big
 workloads/graph_workloads/m5out*
 workloads/graph_workloads/*trace
@@ -13,3 +9,4 @@ workloads/fft_workload/*trace
 
 workloads/amr_workloads/m5out*
 workloads/amr_workloads/*trace
+workloads/graph_workloads/graph_coarsening
