@@ -243,14 +243,12 @@ static int workload_main() {
     init_roots();
     int testAddr[1] = {1};
     for (int t = 0; t < NUM_STEPS; ++t) {
-        // for(int _ = 0; _ < 10000; ++_){
-        //     int _v_ = testAddr[0];
-        //     testAddr[0] = _v_+1;
-        // }
         m5_work_begin(t, 0);   // workid = t
+        m5_dram_opt_enter(t, 0, g_cells, sizeof(Cell) * g_cell_count);
         update_leaf_values(t);
         adapt_refine(t);
         adapt_coarsen(t);
+        m5_dram_opt_exit(t, 0, g_cells, sizeof(Cell) * g_cell_count);
         m5_work_end(t, 0);
     }
     return compute_checksum() & 255;
