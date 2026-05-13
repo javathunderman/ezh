@@ -7,6 +7,7 @@ workloads/graph_workloads/*trace
 workloads/fft_workload/m5out*
 workloads/fft_workload/*trace
 
-workloads/amr_workloads/m5out*
-workloads/amr_workloads/*trace
+workloads/amr_workload/m5out*
+workloads/amr_workload/*trace
+workloads/amr_workload/amr_counts
 workloads/graph_workloads/graph_coarsening
