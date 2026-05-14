@@ -115,6 +115,7 @@ static void fft(complex_t *a, int n) {
     for (int len = 2; len <= n; len <<= 1) {
 
         m5_work_begin(stage, 0); // work ID is the length
+        m5_dram_opt_enter(stage, 0, a, FFT_N * sizeof(complex_t));
 
         double ang = -2.0 * M_PI_VAL / (double)len;
         complex_t wlen = { my_cos(ang), my_sin(ang) };
@@ -131,6 +132,7 @@ static void fft(complex_t *a, int n) {
             }
         }
         m5_work_end(stage, 0);
+        m5_dram_opt_exit(stage, 0, a, FFT_N * sizeof(complex_t));
 
         stage++;
     }
