@@ -1,0 +1,22 @@
+{
+  "trace": "/ezh/workloads/amr_workload/amr_counts_dramsim3_baseline.trace",
+  "out_original": "/ezh/workloads/amr_workload/aggressive_buffering/results/traces/amr_counts_gcells_only_original.trace",
+  "out_optimistic": "/ezh/workloads/amr_workload/aggressive_buffering/results/traces/amr_counts_gcells_only_optimistic.trace",
+  "gcell_range": {
+    "gcell_lines": 8192,
+    "max_idx": 4095,
+    "sizeof_cell": 48,
+    "virtual_start": 4214816,
+    "virtual_end": 4411424,
+    "virtual_size": 196608,
+    "chosen_delta": -4194304,
+    "trace_start": 20512,
+    "trace_end": 217120
+  },
+  "entries": 584803,
+  "reads": 480436,
+  "writes": 104367,
+  "others": 0,
+  "original_first_cycle": 13,
+  "original_last_relative_cycle": 10674061
+}

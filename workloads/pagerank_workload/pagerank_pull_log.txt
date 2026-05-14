@@ -1,0 +1,51 @@
+Global frequency set at 1000000000000 ticks per second
+gem5 Simulator System.  https://www.gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 version 22.0.0.1
+gem5 compiled May  9 2026 00:34:23
+gem5 started May 12 2026 20:19:35
+gem5 executing on 219f1b9dc2b5, pid 94017
+command line: /ezh/gem5/build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/ezh/workloads/pagerank_workload/m5out_pagerank_pull /ezh/gem5/configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=4GHz --cacheline_size=64 --num-cpus=1 --mem-size=2147483648 --cmd=/ezh/workloads/pagerank_workload/pagerank_pull
+
+info: Standard input is not a terminal, disabling listeners.
+Beginning simulation!
+PRREG name=rank_a base=0x0000000000428040 end=0x000000000042a040 bytes=8192
+PRREG name=rank_b base=0x000000000042a040 end=0x000000000042c040 bytes=8192
+PRREG name=row_ptr base=0x0000000000404020 end=0x0000000000406024 bytes=8196
+PRREG name=col_idx base=0x0000000000406040 end=0x0000000000426040 bytes=131072
+PRREG name=out_deg base=0x0000000000426040 end=0x0000000000428040 bytes=8192
+EXIT: tick=463840750 cause=workbegin code=0
+ITER_BEGIN t=0 tick=463840750
+EXIT: tick=1213939500 cause=workend code=0
+ITER_END   t=0 tick=1213939500
+EXIT: tick=1213947000 cause=workbegin code=1
+ITER_BEGIN t=1 tick=1213947000
+EXIT: tick=1964047250 cause=workend code=1
+ITER_END   t=1 tick=1964047250
+EXIT: tick=1964054750 cause=workbegin code=2
+ITER_BEGIN t=2 tick=1964054750
+EXIT: tick=2714153500 cause=workend code=2
+ITER_END   t=2 tick=2714153500
+EXIT: tick=2714161000 cause=workbegin code=3
+ITER_BEGIN t=3 tick=2714161000
+EXIT: tick=3464261250 cause=workend code=3
+ITER_END   t=3 tick=3464261250
+EXIT: tick=3464268750 cause=workbegin code=4
+ITER_BEGIN t=4 tick=3464268750
+EXIT: tick=4214367500 cause=workend code=4
+ITER_END   t=4 tick=4214367500
+EXIT: tick=4214375000 cause=workbegin code=5
+ITER_BEGIN t=5 tick=4214375000
+EXIT: tick=4964475250 cause=workend code=5
+ITER_END   t=5 tick=4964475250
+EXIT: tick=4964482750 cause=workbegin code=6
+ITER_BEGIN t=6 tick=4964482750
+EXIT: tick=5714581500 cause=workend code=6
+ITER_END   t=6 tick=5714581500
+EXIT: tick=5714589000 cause=workbegin code=7
+ITER_BEGIN t=7 tick=5714589000
+EXIT: tick=6464689250 cause=workend code=7
+ITER_END   t=7 tick=6464689250
+EXIT: tick=6484162250 cause=exiting with last active thread context code=0
+Program finished at tick 6484162250

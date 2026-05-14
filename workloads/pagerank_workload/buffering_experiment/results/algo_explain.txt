@@ -1,0 +1,307 @@
+Pull PageRank buffering experiment explanation
+==============================================
+
+This workload is a pull-style, double-buffered PageRank. Each iteration scans
+all vertices, reads graph-control arrays such as row_ptr/col_idx/out_deg, reads
+the old rank buffer, and writes each element of the next rank buffer once. The
+next rank buffer is not read until the following iteration, which is the exact
+condition this buffering idea wants.
+
+The targeted method is intentionally optimistic but selective: it buffers only
+rank-array traffic, namely old-rank reads and the current iteration's
+write-once next-rank stores. It does not put row_ptr, col_idx, or out_deg into
+the huge buffer, so graph traversal/control-flow memory keeps its original
+timing. The blind method is more like conceptually making the whole memory
+system's read/write queues enormous: it captures every in-iteration READ and
+WRITE, including row_ptr/col_idx/out_deg traffic, and reissues sorted reads
+followed by sorted writes. That can look good in a trace, but it is much less
+plausible because control-flow loads would be stuck behind the same giant
+queueing/reordering mechanism.
+
+For the isolated rank-buffer stream, the original trace used
+9582877 DRAMSim3 cycles. The targeted method used
+851860 cycles, a
+11.25x
+cycle reduction. The blind method used 851860
+cycles, a 11.25x
+cycle reduction. Bandwidth moved from 1.3293
+to 14.9533 for targeted and
+14.9533 for blind.
+
+The whole-trace plots should be read more cautiously. Targeted buffering is the
+more architecture-motivated comparison because it leaves graph traversal/control
+traffic alone. Blind buffering is included as a contrast point: it approximates
+what happens if huge queues indiscriminately absorb everything, which can
+improve synthetic DRAM scheduling while being expensive or illegal for real
+control-flow-dependent execution. The buffer-scope plot shows this difference
+directly: targeted buffering captures 204,772
+rank-array requests, while blind buffering captures
+16,450,064 requests across rank,
+adjacency, control, and other in-window traffic.
+
+The costly blind whole-trace variant serializes that huge blind buffer at one
+request per cycle. With that dependency-cost approximation, whole-trace cycles
+increase from 10,292,321 to 11,127,034, while targeted remains at the baseline
+whole-trace cycle count because it does not trap the control-flow accesses.
+
+Summary metadata:
+{
+  "regions": {
+    "rank_a": [
+      163904,
+      172096
+    ],
+    "rank_b": [
+      172096,
+      180288
+    ],
+    "row_ptr": [
+      16416,
+      24612
+    ],
+    "col_idx": [
+      24640,
+      155712
+    ],
+    "out_deg": [
+      155712,
+      163904
+    ]
+  },
+  "windows": [
+    {
+      "id": 0,
+      "begin": 736255,
+      "end": 1926888
+    },
+    {
+      "id": 1,
+      "begin": 1926900,
+      "end": 3117535
+    },
+    {
+      "id": 2,
+      "begin": 3117547,
+      "end": 4308180
+    },
+    {
+      "id": 3,
+      "begin": 4308192,
+      "end": 5498827
+    },
+    {
+      "id": 4,
+      "begin": 5498839,
+      "end": 6689472
+    },
+    {
+      "id": 5,
+      "begin": 6689484,
+      "end": 7880119
+    },
+    {
+      "id": 6,
+      "begin": 7880131,
+      "end": 9070764
+    },
+    {
+      "id": 7,
+      "begin": 9070776,
+      "end": 10261411
+    }
+  ],
+  "targeted": {
+    "input_entries": 18178775,
+    "targeted_rank_entries": 204772,
+    "per_window": [
+      {
+        "id": 0,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 736255,
+        "end": 1926888
+      },
+      {
+        "id": 1,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 1926900,
+        "end": 3117535
+      },
+      {
+        "id": 2,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 3117547,
+        "end": 4308180
+      },
+      {
+        "id": 3,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 4308192,
+        "end": 5498827
+      },
+      {
+        "id": 4,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 5498839,
+        "end": 6689472
+      },
+      {
+        "id": 5,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 6689484,
+        "end": 7880119
+      },
+      {
+        "id": 6,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 7880131,
+        "end": 9070764
+      },
+      {
+        "id": 7,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 9070776,
+        "end": 10261411
+      }
+    ]
+  },
+  "blind_unrealistic_free": {
+    "input_entries": 18178775,
+    "blind_buffered_entries": 16450064,
+    "issue_gap": 0,
+    "per_window": [
+      {
+        "id": 0,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 736255
+      },
+      {
+        "id": 1,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 1926900
+      },
+      {
+        "id": 2,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 3117547
+      },
+      {
+        "id": 3,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 4308192
+      },
+      {
+        "id": 4,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 5498839
+      },
+      {
+        "id": 5,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 6689484
+      },
+      {
+        "id": 6,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 7880131
+      },
+      {
+        "id": 7,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 9070776
+      }
+    ]
+  },
+  "blind_costly": {
+    "input_entries": 18178775,
+    "blind_buffered_entries": 16450064,
+    "issue_gap": 1,
+    "per_window": [
+      {
+        "id": 0,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 2792512
+      },
+      {
+        "id": 1,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 3983159
+      },
+      {
+        "id": 2,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 5173804
+      },
+      {
+        "id": 3,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 6364451
+      },
+      {
+        "id": 4,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 7555096
+      },
+      {
+        "id": 5,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 8745743
+      },
+      {
+        "id": 6,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 9936388
+      },
+      {
+        "id": 7,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 11127035
+      }
+    ]
+  },
+  "rank_only": {
+    "rank_entries": 212965,
+    "rank_reads": 197604,
+    "rank_writes": 15361,
+    "original_span": 9582877
+  }
+}

@@ -1,0 +1,155 @@
+Workload to DRAMSim3 Toolchain Summary
+=====================================
+
+Repo layout
+-----------
+- Workloads live under `workloads/`.
+- Automation lives under `scripts/`.
+- gem5 is expected at `gem5/`; DRAMSim3 is expected at `DRAMsim3/`.
+- Current workload families:
+  - `workloads/amr_workload/`: freestanding adaptive mesh refinement toy workload.
+  - `workloads/graph_workloads/`: graph coarsening workload.
+  - `workloads/fft_workload/`: FFT artifacts and older bit-shift result/plot flow; no FFT source file is currently present in `workloads/fft_workload/`.
+
+High-level flow
+---------------
+1. Compile a freestanding x86 workload with `g++`.
+   - Scripts use `-O0 -nostdlib -static -ffreestanding -fno-exceptions -fno-rtti -fno-stack-protector -no-pie`.
+   - Workloads include gem5 m5ops headers from `gem5/include`.
+   - Workloads link against `gem5/util/m5/build/x86/out/libm5`.
+
+2. Run the binary in gem5 syscall-emulation mode.
+   - Common gem5 config:
+     - `gem5/build/X86/gem5.opt`
+     - `gem5/configs/example/se.py`
+     - `--cpu-type=AtomicSimpleCPU`
+     - `--cpu-clock=4GHz`
+     - `--cacheline_size=64`
+     - `--num-cpus=1`
+     - AMR scripts also pass `--mem-size=2147483648`.
+   - Scripts use `--debug-flags=DRAMOpt`, which produces the compressed packet trace at:
+     - `<workload>/m5out_*/trace.ptrc.gz`
+   - gem5 stdout is redirected into workload logs such as:
+     - `workloads/amr_workload/amr_counts_log.txt`
+     - `workloads/amr_workload/amr_counts_log_baseline.txt`
+     - `workloads/graph_workloads/graph_coarsening_log.txt`
+     - `workloads/graph_workloads/graph_coarsening_log_baseline.txt`
+
+3. Mark workload iteration ranges with m5 work events.
+   - Workload code calls `m5_work_begin(t, 0)` and `m5_work_end(t, 0)`.
+   - The local `gem5/configs/example/se.py` has been modified to set `system.exit_on_work_items = True`, simulate in a loop, and print:
+     - `ITER_BEGIN t=<id> tick=<tick>`
+     - `ITER_END   t=<id> tick=<tick>`
+   - `scripts/divideDRAMSimtrace.py` uses those log lines to split a full DRAMSim3 trace into per-iteration traces.
+
+4. Decode gem5's packet trace.
+   - Command pattern:
+     - `python3 gem5/util/decode_packet_trace.py <m5out>/trace.ptrc.gz <raw_trace>`
+   - Output examples:
+     - `workloads/amr_workload/amr_counts_log_raw_trace`
+     - `workloads/amr_workload/amr_counts_log_raw_baseline_trace`
+     - `workloads/graph_workloads/graph_coarsening_log_raw_trace`
+     - `workloads/graph_workloads/graph_coarsening_log_raw_baseline_trace`
+
+5. Convert decoded gem5 trace to DRAMSim3 trace format.
+   - Command pattern:
+     - `python3 scripts/convert_trace.py <raw_trace> <dramsim_trace> --tck-ps 630`
+   - `convert_trace.py` maps gem5 commands to `READ`/`WRITE`, preserves byte addresses by default, and converts ticks to DRAM cycles with:
+     - `cycle = floor((tick * tick_ps) / tck_ps)`
+   - The current output format is four fields:
+     - `0xADDR READ|WRITE cycle opt_flag`
+   - Example traces:
+     - `workloads/amr_workload/amr_counts_dramsim3_baseline.trace`
+     - `workloads/graph_workloads/graph_coarsening_dramsim3.trace`
+     - `workloads/graph_workloads/graph_coarsening_dramsim3_baseline.trace`
+
+6. Run DRAMSim3 over the converted trace.
+   - AMR scripts compute the final cycle with:
+     - `tail -n 1 <dramsim_trace> | awk '{print $3}'`
+   - Then they run:
+     - `DRAMsim3/build/dramsim3main <config.ini> -c <final_cycle> -t <trace> -o <result_dir>`
+   - `scripts/buffer_workloads_run.sh` adds `--enable_buffering`.
+   - `scripts/baseline_workloads_run.sh` omits `--enable_buffering`.
+   - AMR currently targets `DDR4_8Gb_x8_1866` and also runs local variants:
+     - `DDR4_8Gb_x8_1866.ini`
+     - `DDR4_8Gb_x8_1866_unified.ini`
+     - `DDR4_8Gb_x8_1866_non_unified.ini`
+   - Graph and FFT bit-shift scripts target `DDR4_8Gb_x8_3200.ini`.
+
+7. Collect DRAMSim3 outputs.
+   - DRAMSim3 writes files such as:
+     - `dramsim3.txt`
+     - `dramsim3.json`
+     - `dramsim3epoch.json`, when epochs are generated.
+   - Current AMR result locations include:
+     - `workloads/amr_workload/dramsim_results/`
+     - `workloads/amr_workload/dramsim_results_baseline/{unspecified,unified_queue,non_unified_queue}/`
+   - Current graph result locations include:
+     - `workloads/graph_workloads/dramsim_results/{unspecified,unified_queue,non_unified_queue}/`
+     - `workloads/graph_workloads/dramsim_results_baseline/{unspecified,unified_queue,non_unified_queue}/`
+   - Current FFT artifacts include:
+     - `workloads/fft_workload/dramsim_results/`
+     - `workloads/fft_workload/data_graphs/`
+
+Per-workload notes
+------------------
+AMR:
+- Source: `workloads/amr_workload/amr_counts.cpp`.
+- Simulates a small adaptive mesh over `NUM_STEPS = 3`.
+- Uses `m5_work_begin/end` around each time step.
+- The buffer and baseline scripts are currently hardcoded to this workload.
+
+Graph coarsening:
+- Source: `workloads/graph_workloads/graph_coarsening.cpp`.
+- Generates a random graph, runs multilevel greedy coarsening, and wraps each level in `m5_work_begin/end`.
+- Also calls `m5_dram_opt_enter/exit` around `coarsen_once`.
+- `scripts/sample_graph_workloads_run.sh` runs compile, gem5, decode, convert, split, optional address bank-bit shifting, and per-iteration DRAMSim3.
+
+FFT:
+- `workloads/fft_workload/` currently contains the built `fft` binary, DRAMSim3 result artifacts, and plot data, but no source file is present in the workload directory.
+- `scripts/fft_workloads_run.sh` is mostly a post-processing / DRAMSim3 loop over preexisting FFT chunk traces. The compile/gem5/decode/convert/split commands are commented out and reference paths from an older setup.
+
+Iteration splitting and bank-bit shifting
+-----------------------------------------
+- `scripts/divideDRAMSimtrace.py` parses `ITER_BEGIN`/`ITER_END` ranges from a gem5 log, converts ticks to cycles with `--tickDivParam`, and writes one trace per iteration:
+  - `iter_<id>_cycles_<begin_cycle>_<end_cycle>.trace`
+- `scripts/rewrite_dramsim3_bankshift.py` rewrites a bank-bit field in selected per-iteration traces.
+  - For an affected iteration `i`, it rewrites WRITEs in `i-1` and READs in `i`.
+  - It preserves the bank field value but moves the field from `bank_lsb` by `bank_bit_shift` bits.
+- `scripts/set_trace_cycle_zero.py` normalizes each chunk trace so the first trace cycle becomes zero.
+- Graph bit-shift loop:
+  - bit shifts: `0, 2, 4, 6`
+  - iter set: `5`
+  - DRAMSim iterations: `0..5`
+- FFT bit-shift loop:
+  - bit shifts: `2, 4, 6, 8, 10, 12, 14, 16`
+  - iter set: `10`
+  - DRAMSim iterations: `0..9`
+
+Plotting
+--------
+- `scripts/scrape_and_plot.py` walks directories named `dramsim_results_bitshift_<n>/dramsim_results_<iter>/dramsim3.txt`.
+- It extracts configured stats and writes PNGs plus value dumps.
+- Configured stats include:
+  - `all_bank_idle_cycles.{0,1}`
+  - `rank_active_cycles.{0,1}`
+  - `average_read_latency`
+  - `average_bandwidth`
+  - `num_reads_done`
+  - `num_read_row_hits`
+- Existing plot/value outputs live under:
+  - `workloads/graph_workloads/dramsim_plots/`
+  - `workloads/fft_workload/data_graphs/`
+
+Important caveats
+-----------------
+- The converted trace format is currently four columns: `addr op cycle opt_flag`.
+- Some helper scripts still assume three columns:
+  - `divideDRAMSimtrace.py` reads `parts[-1]` as the cycle, which is wrong for four-column traces because `parts[-1]` is `opt_flag`.
+  - `rewrite_dramsim3_bankshift.py` only parses lines matching `addr op cycle`.
+  - `set_trace_cycle_zero.py` only normalizes lines with exactly three fields.
+- The full-trace AMR scripts avoid this mismatch by taking the final cycle from column 3 with `awk '{print $3}'` and passing the full trace directly to DRAMSim3.
+- The per-iteration bit-shift flow should be checked or updated before using it with newly generated four-column traces.
+- `scripts/buffer_workloads_run.sh` overrides `REPO_ROOT=/ezh`; this is less portable than the computed repo root directly above it.
+- `scripts/sample_graph_workloads_run.sh` and `scripts/fft_workloads_run.sh` contain hardcoded `/ezh` or `~/ezh` paths.
+- Several generated artifacts and modified submodules are already present in the working tree; preserve them unless intentionally refreshing results.

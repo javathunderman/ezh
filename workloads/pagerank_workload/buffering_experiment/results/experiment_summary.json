@@ -1,0 +1,260 @@
+{
+  "regions": {
+    "rank_a": [
+      163904,
+      172096
+    ],
+    "rank_b": [
+      172096,
+      180288
+    ],
+    "row_ptr": [
+      16416,
+      24612
+    ],
+    "col_idx": [
+      24640,
+      155712
+    ],
+    "out_deg": [
+      155712,
+      163904
+    ]
+  },
+  "windows": [
+    {
+      "id": 0,
+      "begin": 736255,
+      "end": 1926888
+    },
+    {
+      "id": 1,
+      "begin": 1926900,
+      "end": 3117535
+    },
+    {
+      "id": 2,
+      "begin": 3117547,
+      "end": 4308180
+    },
+    {
+      "id": 3,
+      "begin": 4308192,
+      "end": 5498827
+    },
+    {
+      "id": 4,
+      "begin": 5498839,
+      "end": 6689472
+    },
+    {
+      "id": 5,
+      "begin": 6689484,
+      "end": 7880119
+    },
+    {
+      "id": 6,
+      "begin": 7880131,
+      "end": 9070764
+    },
+    {
+      "id": 7,
+      "begin": 9070776,
+      "end": 10261411
+    }
+  ],
+  "targeted": {
+    "input_entries": 18178775,
+    "targeted_rank_entries": 204772,
+    "per_window": [
+      {
+        "id": 0,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 736255,
+        "end": 1926888
+      },
+      {
+        "id": 1,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 1926900,
+        "end": 3117535
+      },
+      {
+        "id": 2,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 3117547,
+        "end": 4308180
+      },
+      {
+        "id": 3,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 4308192,
+        "end": 5498827
+      },
+      {
+        "id": 4,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 5498839,
+        "end": 6689472
+      },
+      {
+        "id": 5,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 6689484,
+        "end": 7880119
+      },
+      {
+        "id": 6,
+        "targeted_rank_reads": 16377,
+        "targeted_output_writes": 1024,
+        "begin": 7880131,
+        "end": 9070764
+      },
+      {
+        "id": 7,
+        "targeted_rank_reads": 32768,
+        "targeted_output_writes": 1024,
+        "begin": 9070776,
+        "end": 10261411
+      }
+    ]
+  },
+  "blind_unrealistic_free": {
+    "input_entries": 18178775,
+    "blind_buffered_entries": 16450064,
+    "issue_gap": 0,
+    "per_window": [
+      {
+        "id": 0,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 736255
+      },
+      {
+        "id": 1,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 1926900
+      },
+      {
+        "id": 2,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 3117547
+      },
+      {
+        "id": 3,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 4308192
+      },
+      {
+        "id": 4,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 5498839
+      },
+      {
+        "id": 5,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 6689484
+      },
+      {
+        "id": 6,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 7880131
+      },
+      {
+        "id": 7,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 0,
+        "drain_end": 9070776
+      }
+    ]
+  },
+  "blind_costly": {
+    "input_entries": 18178775,
+    "blind_buffered_entries": 16450064,
+    "issue_gap": 1,
+    "per_window": [
+      {
+        "id": 0,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 2792512
+      },
+      {
+        "id": 1,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 3983159
+      },
+      {
+        "id": 2,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 5173804
+      },
+      {
+        "id": 3,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 6364451
+      },
+      {
+        "id": 4,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 7555096
+      },
+      {
+        "id": 5,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 8745743
+      },
+      {
+        "id": 6,
+        "reads": 1910841,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 9936388
+      },
+      {
+        "id": 7,
+        "reads": 1910843,
+        "writes": 145416,
+        "issue_gap": 1,
+        "drain_end": 11127035
+      }
+    ]
+  },
+  "rank_only": {
+    "rank_entries": 212965,
+    "rank_reads": 197604,
+    "rank_writes": 15361,
+    "original_span": 9582877
+  }
+}
