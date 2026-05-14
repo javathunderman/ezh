@@ -11,3 +11,7 @@ workloads/amr_workload/m5out*
 workloads/amr_workload/*trace
 workloads/amr_workload/amr_counts
 workloads/graph_workloads/graph_coarsening
+workloads/fft_workload/fft
+workloads/pagerank_workload/m5out*
+workloads/*/__pycache__
+workloads/pagerank_workload/pagerank_pull
