@@ -1,0 +1,70 @@
+{
+  "trace": "/ezh/workloads/amr_workload/amr_counts_dramsim3_baseline.trace",
+  "out_trace": "/ezh/workloads/amr_workload/aggressive_buffering/results/traces/amr_counts_gcells_optimistic.trace",
+  "tick_div": 630,
+  "rewrite_model": "same-cycle read phase followed by same-cycle write phase at each iteration begin",
+  "gcell_range": {
+    "gcell_lines": 8192,
+    "max_idx": 4095,
+    "sizeof_cell": 48,
+    "virtual_start": 4214816,
+    "virtual_end": 4411424,
+    "virtual_size": 196608,
+    "chosen_delta": -4194304,
+    "trace_start": 20512,
+    "trace_end": 217120,
+    "candidate_matched_entries": 584803
+  },
+  "windows": [
+    {
+      "id": 0,
+      "begin": 8606074,
+      "end": 11704942
+    },
+    {
+      "id": 1,
+      "begin": 11704953,
+      "end": 14803159
+    },
+    {
+      "id": 2,
+      "begin": 14803171,
+      "end": 17900454
+    }
+  ],
+  "input_entries": 27116399,
+  "output_entries": 27116399,
+  "gcell_entries_total": 584803,
+  "gcell_entries_rewritten": 108774,
+  "gcell_entries_outside_windows": 476029,
+  "non_gcell_entries": 26531596,
+  "per_window": [
+    {
+      "id": 0,
+      "begin_cycle": 8606074,
+      "end_cycle": 11704942,
+      "gcell_reads": 108774,
+      "gcell_writes": 0,
+      "original_span_cycles": 3098868,
+      "buffered_span_cycles": 0
+    },
+    {
+      "id": 1,
+      "begin_cycle": 11704953,
+      "end_cycle": 14803159,
+      "gcell_reads": 0,
+      "gcell_writes": 0,
+      "original_span_cycles": 3098206,
+      "buffered_span_cycles": 0
+    },
+    {
+      "id": 2,
+      "begin_cycle": 14803171,
+      "end_cycle": 17900454,
+      "gcell_reads": 0,
+      "gcell_writes": 0,
+      "original_span_cycles": 3097283,
+      "buffered_span_cycles": 0
+    }
+  ]
+}

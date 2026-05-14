@@ -35,9 +35,87 @@ static Cell g_cells[MAX_CELLS];
 static int g_cell_count = 0;
 static const unsigned int DOMAIN_SCALE = 1024u;
 
+// Raw Linux x86-64 write syscall
+static long sys_write(int fd, const char* buf, unsigned long len) {
+    long ret;
+    __asm__ __volatile__(
+        "movq $1, %%rax\n\t"
+        "syscall\n\t"
+        : "=a"(ret)
+        : "D"((long)fd), "S"(buf), "d"((long)len)
+        : "%rcx", "%r11", "memory"
+    );
+    return ret;
+}
+
+static int append_str(char* out, int p, const char* s) {
+    for (int i = 0; s[i]; ++i) out[p++] = s[i];
+    return p;
+}
+
+static int append_dec(char* out, int p, int v) {
+    char tmp[16];
+    int n = 0;
+
+    if (v == 0) {
+        out[p++] = '0';
+        return p;
+    }
+
+    if (v < 0) {
+        out[p++] = '-';
+        v = -v;
+    }
+
+    while (v > 0) {
+        tmp[n++] = (char)('0' + (v % 10));
+        v /= 10;
+    }
+
+    while (n > 0) out[p++] = tmp[--n];
+    return p;
+}
+
+static int append_hex64(char* out, int p, unsigned long long v) {
+    static const char h[] = "0123456789abcdef";
+    out[p++] = '0';
+    out[p++] = 'x';
+    for (int i = 15; i >= 0; --i) {
+        out[p++] = h[(v >> (i * 4)) & 0xfULL];
+    }
+    return p;
+}
+
+static void print_cell_addr(int idx) {
+    char buf[160];
+    int p = 0;
+
+    unsigned long long base =
+        (unsigned long long)(unsigned long)&g_cells[0];
+    unsigned long long addr =
+        (unsigned long long)(unsigned long)&g_cells[idx];
+    unsigned long long offset =
+        (unsigned long long)((char*)&g_cells[idx] - (char*)&g_cells[0]);
+
+    p = append_str(buf, p, "GCELL idx=");
+    p = append_dec(buf, p, idx);
+    p = append_str(buf, p, " base=");
+    p = append_hex64(buf, p, base);
+    p = append_str(buf, p, " addr=");
+    p = append_hex64(buf, p, addr);
+    p = append_str(buf, p, " offset=");
+    p = append_hex64(buf, p, offset);
+    p = append_str(buf, p, " sizeof_cell=");
+    p = append_dec(buf, p, (int)sizeof(Cell));
+    buf[p++] = '\n';
+
+    sys_write(1, buf, (unsigned long)p);
+}
+
 static int alloc_cell() {
     if (g_cell_count >= MAX_CELLS) return -1;
     int idx = g_cell_count++;
+
     g_cells[idx].alive = 1;
     g_cells[idx].leaf = 1;
     g_cells[idx].parent = -1;
@@ -49,6 +127,9 @@ static int alloc_cell() {
     g_cells[idx].depth = 0;
     g_cells[idx].value = 0;
     g_cells[idx].init_tag = 0;
+
+    print_cell_addr(idx);
+
     return idx;
 }
 
@@ -110,7 +191,6 @@ static int split_cell(int idx, int t) {
         if (ch[k] < 0) return 0;
     }
 
-    // NW
     g_cells[ch[0]].parent = idx;
     g_cells[ch[0]].depth  = c->depth + 1;
     g_cells[ch[0]].x0 = (unsigned short)x0; g_cells[ch[0]].y0 = (unsigned short)ym;
@@ -118,7 +198,6 @@ static int split_cell(int idx, int t) {
     g_cells[ch[0]].init_tag = c->init_tag ^ 0x11;
     g_cells[ch[0]].value = compute_cell_value(&g_cells[ch[0]], t);
 
-    // NE
     g_cells[ch[1]].parent = idx;
     g_cells[ch[1]].depth  = c->depth + 1;
     g_cells[ch[1]].x0 = (unsigned short)xm; g_cells[ch[1]].y0 = (unsigned short)ym;
@@ -126,7 +205,6 @@ static int split_cell(int idx, int t) {
     g_cells[ch[1]].init_tag = c->init_tag ^ 0x22;
     g_cells[ch[1]].value = compute_cell_value(&g_cells[ch[1]], t);
 
-    // SW
     g_cells[ch[2]].parent = idx;
     g_cells[ch[2]].depth  = c->depth + 1;
     g_cells[ch[2]].x0 = (unsigned short)x0; g_cells[ch[2]].y0 = (unsigned short)y0;
@@ -134,7 +212,6 @@ static int split_cell(int idx, int t) {
     g_cells[ch[2]].init_tag = c->init_tag ^ 0x33;
     g_cells[ch[2]].value = compute_cell_value(&g_cells[ch[2]], t);
 
-    // SE
     g_cells[ch[3]].parent = idx;
     g_cells[ch[3]].depth  = c->depth + 1;
     g_cells[ch[3]].x0 = (unsigned short)xm; g_cells[ch[3]].y0 = (unsigned short)y0;
@@ -268,5 +345,5 @@ static __attribute__((noreturn)) void sys_exit(int code) {
 
 extern "C" void _start() {
     int rc = workload_main();
-    sys_exit(0);
+    sys_exit(rc);
 }

@@ -1,0 +1,166 @@
+=====================================================
+some discussion from chatbotland on workloads
+noen of these are great, but we'll
+keep the discussion for prosperity 
+note that 1 and 2 are basically AMR minus the adaptive step
+=====================================================
+
+Workloads that should stress aggressive read/write buffering better
+===================================================================
+
+The current AMR trace is not ideal for showing the idea at whole-program scale:
+many g_cells accesses are outside the measured work windows, and the rewriteable
+in-window g_cells traffic was mostly reads. Better test workloads should make
+the target region explicit and naturally phase memory as:
+
+  read old state -> compute -> write new state -> do not read new state until
+  the next iteration
+
+Good near-term candidates
+-------------------------
+
+1. Double-buffered Jacobi stencil, 1D/2D/3D
+
+Why it fits:
+Each time step reads from array A and writes array B. B is not read until the
+next time step, when the buffers swap. This is almost the cleanest possible
+case for the buffering idea: reads and writes target large regular arrays, and
+the legality rule is easy to enforce.
+
+Implementation difficulty:
+Low. A freestanding C++ version is just two flat arrays, nested loops, and
+m5_work_begin/end around each time step. Start with 1D or 2D, then scale the
+array until DRAM traffic dominates.
+
+What to mark:
+Track both buffers. For each iteration, aggressively group reads from the
+source buffer and writes to the destination buffer. Compare original vs
+read-phase/write-phase traces.
+
+References:
+- PolyBench/C includes `jacobi-1D` and `jacobi-2D` stencil computations:
+  https://www.cs.colostate.edu/~pouchet/software/polybench/
+- Parboil includes `stencil`, described as an iterative Jacobi stencil on a
+  regular 3-D grid:
+  https://impact.crhc.illinois.edu/parboil/parboil.aspx
+
+
+2. FDTD-style grid update
+
+Why it fits:
+Finite-difference time-domain kernels update grid fields in regular time steps.
+Depending on how the arrays are arranged, a simple version can read one set of
+field arrays and write another set, then consume the written values in a later
+phase or next time step. This gives more arrays than Jacobi while staying
+regular and easy to reason about.
+
+Implementation difficulty:
+Low to medium. PolyBench's fdtd-2d is a good template, but for this experiment
+it may be better to write a smaller explicit two-buffer version first.
+
+What to mark:
+Mark the E/H field arrays or their simplified equivalents. Try separate read
+and write phases per field group.
+
+References:
+- PolyBench/C includes `fdtd-2d` and `fdtd-apml`:
+  https://www.cs.colostate.edu/~pouchet/software/polybench/
+
+
+3. CSR sparse matrix-vector multiply, especially repeated SpMV
+
+Why it fits:
+SpMV reads matrix storage and an input vector x, then writes an output vector y.
+In an iterative solver, y is usually consumed by a later phase or next
+iteration. The output vector is an obvious "write now, read later" region, and
+matrix/vector reads can be grouped separately from y writes.
+
+Implementation difficulty:
+Medium. A small CSR generator is straightforward: build row_ptr, col_idx,
+values, x, y. A regular banded sparse matrix is easiest; a power-law or random
+matrix is more stressful but less predictable.
+
+What to mark:
+Start by marking y only. Then optionally mark x and CSR arrays separately to
+study read grouping. For iterative variants, swap x/y or copy y into x between
+iterations.
+
+References:
+- Parboil includes an `spmv` benchmark:
+  https://impact.crhc.illinois.edu/parboil/parboil.aspx
+- NAS Parallel Benchmarks include CG, described by NASA as a conjugate-gradient
+  kernel with irregular memory access and communication:
+  https://www.nas.nasa.gov/software/npb.html
+- CSR/SpMV is a common stress case because sparse structure produces irregular
+  memory behavior; see Merrill and Garland's merge-based CSR SpMV paper:
+  https://doi.org/10.1145/2851141.2851190
+
+
+4. Level-synchronous BFS with next-frontier buffering
+
+Why it fits:
+Breadth-first search is naturally level phased. A level reads the current
+frontier and graph adjacency, then writes parent/visited/next_frontier state
+for the next level. The next frontier is not consumed until the next BFS level,
+which makes it a good match for delayed/batched writes.
+
+Implementation difficulty:
+Medium. A minimal CSR graph plus two frontier arrays is manageable. The tricky
+part is avoiding atomics in a freestanding single-threaded workload; for this
+experiment, a deterministic single-threaded BFS is fine.
+
+What to mark:
+Mark next_frontier and parent/visited arrays. Buffer writes during a level and
+read them only at the next level. Also test graph adjacency reads as a separate
+read-heavy stream.
+
+References:
+- Graph500 specifies BFS as a benchmark kernel and describes BFS as proceeding
+  in phases/levels from a source vertex:
+  https://graph500.org/?page_id=12
+- Parboil includes a `bfs` benchmark:
+  https://impact.crhc.illinois.edu/parboil/parboil.aspx
+
+
+5. K-means / stream clustering assignment pass
+
+Why it fits:
+The assignment step reads points and centers, then writes per-point assignment
+or cost arrays. Those assignment/cost arrays are usually consumed by a later
+update/reduction phase, not immediately by the same inner loop. That makes the
+write stream a plausible buffering target.
+
+Implementation difficulty:
+Medium. A simple k-means assignment/update loop is easier than full
+streamcluster. Points and centers can be generated deterministically, and the
+assignment array is a clean target region.
+
+What to mark:
+Mark assignment/cost arrays for write buffering. Optionally mark point reads
+and center reads separately to measure read grouping.
+
+References:
+- Rodinia includes Streamcluster; the Rodinia page describes it as finding
+  medians/centers for a stream of input points and assigning points to nearest
+  centers:
+  https://rodinia.cs.virginia.edu/streamcluster.html
+- Rodinia is a benchmark suite for heterogeneous computing covering a range of
+  communication/data-layout patterns:
+  https://doi.org/10.1109/IISWC.2009.5306797
+
+
+Recommended order
+-----------------
+
+Start with double-buffered Jacobi-2D. It is the easiest workload to implement
+correctly, gives the cleanest dependence story, and should make the benefit or
+lack of benefit visible without lots of graph/sparse edge cases.
+
+Second, implement CSR SpMV or BFS. These are more realistic memory-stress
+tests, but the interpretation will be messier because irregular address order
+can trade read/write phasing benefits against row-buffer locality.
+
+For each candidate, print the base/size of the marked arrays just like
+amr_counts.cpp now does for g_cells, then place m5_work_begin/end around the
+phase where the marked region obeys the "written now, read next iteration"
+rule.
