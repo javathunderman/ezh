@@ -1,0 +1,37 @@
+Global frequency set at 1000000000000 ticks per second
+gem5 Simulator System.  https://www.gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 version 22.0.0.1
+gem5 compiled May 14 2026 00:25:44
+gem5 started May 14 2026 03:20:44
+gem5 executing on 76e67a559313, pid 17548
+command line: /ezh/gem5/build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/ezh/workloads/amr_workload/m5out_amr_counts_baseline /ezh/gem5/configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=1GHz --cacheline_size=64 --num-cpus=1 --mem-size=2147483648 --cmd=/ezh/workloads/amr_workload/amr_counts
+
+Beginning simulation!
+EXIT: tick=3185551000 cause=workbegin code=0
+ITER_BEGIN t=0 tick=3185551000
+3185579000: global: pseudo_inst::dram_opt_enter(0, 0)
+DRAM OPT ON: vaddr=405020 entryPaddr=4020 extent= 435020 inputAddr=7fffffffedf0
+10909581000: global: DRAM opt exit workid: 0, threadid 0
+DRAM OPT OFF: vaddr=405020 entryPaddr=4020 extent= 435020 inputAddr=7fffffffedf0
+EXIT: tick=10909597000 cause=workend code=0
+ITER_END   t=0 tick=10909597000
+EXIT: tick=10909625000 cause=workbegin code=1
+ITER_BEGIN t=1 tick=10909625000
+10909653000: global: pseudo_inst::dram_opt_enter(1, 0)
+DRAM OPT ON: vaddr=405020 entryPaddr=4020 extent= 435020 inputAddr=7fffffffedf0
+18632671000: global: DRAM opt exit workid: 1, threadid 0
+DRAM OPT OFF: vaddr=405020 entryPaddr=4020 extent= 435020 inputAddr=7fffffffedf0
+EXIT: tick=18632687000 cause=workend code=1
+ITER_END   t=1 tick=18632687000
+EXIT: tick=18632715000 cause=workbegin code=2
+ITER_BEGIN t=2 tick=18632715000
+18632743000: global: pseudo_inst::dram_opt_enter(2, 0)
+DRAM OPT ON: vaddr=405020 entryPaddr=4020 extent= 435020 inputAddr=7fffffffedf0
+26354020000: global: DRAM opt exit workid: 2, threadid 0
+DRAM OPT OFF: vaddr=405020 entryPaddr=4020 extent= 435020 inputAddr=7fffffffedf0
+EXIT: tick=26354036000 cause=workend code=2
+ITER_END   t=2 tick=26354036000
+EXIT: tick=26898885000 cause=exiting with last active thread context code=0
+Program finished at tick 26898885000

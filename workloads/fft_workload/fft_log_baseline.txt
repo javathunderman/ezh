@@ -1,0 +1,141 @@
+Global frequency set at 1000000000000 ticks per second
+gem5 Simulator System.  https://www.gem5.org
+gem5 is copyrighted software; use the --copyright option for details.
+
+gem5 version 22.0.0.1
+gem5 compiled May 14 2026 00:25:44
+gem5 started May 14 2026 05:30:08
+gem5 executing on 76e67a559313, pid 17627
+command line: /ezh/gem5/build/X86/gem5.opt --debug-flags=DRAMOpt --outdir=/ezh/workloads/fft_workload/m5out_fft_baseline /ezh/gem5/configs/example/se.py --cpu-type=AtomicSimpleCPU --cpu-clock=1GHz --cacheline_size=64 --num-cpus=1 --mem-size=2147483648 --cmd=/ezh/workloads/fft_workload/fft
+
+Beginning simulation!
+EXIT: tick=54710078000 cause=workbegin code=0
+ITER_BEGIN t=0 tick=54710078000
+54710097000: global: pseudo_inst::dram_opt_enter(0, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=70865137000 cause=workend code=0
+ITER_END   t=0 tick=70865137000
+70865156000: global: DRAM opt exit workid: 0, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=70865186000 cause=workbegin code=1
+ITER_BEGIN t=1 tick=70865186000
+70865205000: global: pseudo_inst::dram_opt_enter(1, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=86381262000 cause=workend code=1
+ITER_END   t=1 tick=86381262000
+86381281000: global: DRAM opt exit workid: 1, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=86381311000 cause=workbegin code=2
+ITER_BEGIN t=2 tick=86381311000
+86381330000: global: pseudo_inst::dram_opt_enter(2, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=101577899000 cause=workend code=2
+ITER_END   t=2 tick=101577899000
+101577918000: global: DRAM opt exit workid: 2, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=101577948000 cause=workbegin code=3
+ITER_BEGIN t=3 tick=101577948000
+101577967000: global: pseudo_inst::dram_opt_enter(3, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=116614792000 cause=workend code=3
+ITER_END   t=3 tick=116614792000
+116614811000: global: DRAM opt exit workid: 3, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=116614841000 cause=workbegin code=4
+ITER_BEGIN t=4 tick=116614841000
+116614860000: global: pseudo_inst::dram_opt_enter(4, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=131571813000 cause=workend code=4
+ITER_END   t=4 tick=131571813000
+131571832000: global: DRAM opt exit workid: 4, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=131571862000 cause=workbegin code=5
+ITER_BEGIN t=5 tick=131571862000
+131571881000: global: pseudo_inst::dram_opt_enter(5, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=146488898000 cause=workend code=5
+ITER_END   t=5 tick=146488898000
+146488917000: global: DRAM opt exit workid: 5, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=146488947000 cause=workbegin code=6
+ITER_BEGIN t=6 tick=146488947000
+146488966000: global: pseudo_inst::dram_opt_enter(6, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=161386015000 cause=workend code=6
+ITER_END   t=6 tick=161386015000
+161386034000: global: DRAM opt exit workid: 6, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=161386064000 cause=workbegin code=7
+ITER_BEGIN t=7 tick=161386064000
+161386083000: global: pseudo_inst::dram_opt_enter(7, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=176273148000 cause=workend code=7
+ITER_END   t=7 tick=176273148000
+176273167000: global: DRAM opt exit workid: 7, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=176273197000 cause=workbegin code=8
+ITER_BEGIN t=8 tick=176273197000
+176273216000: global: pseudo_inst::dram_opt_enter(8, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=191155289000 cause=workend code=8
+ITER_END   t=8 tick=191155289000
+191155308000: global: DRAM opt exit workid: 8, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=191155338000 cause=workbegin code=9
+ITER_BEGIN t=9 tick=191155338000
+191155357000: global: pseudo_inst::dram_opt_enter(9, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=206034934000 cause=workend code=9
+ITER_END   t=9 tick=206034934000
+206034953000: global: DRAM opt exit workid: 9, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=206034983000 cause=workbegin code=10
+ITER_BEGIN t=10 tick=206034983000
+206035002000: global: pseudo_inst::dram_opt_enter(10, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=220913331000 cause=workend code=10
+ITER_END   t=10 tick=220913331000
+220913350000: global: DRAM opt exit workid: 10, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=220913380000 cause=workbegin code=11
+ITER_BEGIN t=11 tick=220913380000
+220913399000: global: pseudo_inst::dram_opt_enter(11, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=235791104000 cause=workend code=11
+ITER_END   t=11 tick=235791104000
+235791123000: global: DRAM opt exit workid: 11, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=235791153000 cause=workbegin code=12
+ITER_BEGIN t=12 tick=235791153000
+235791172000: global: pseudo_inst::dram_opt_enter(12, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=250668565000 cause=workend code=12
+ITER_END   t=12 tick=250668565000
+250668584000: global: DRAM opt exit workid: 12, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=250668614000 cause=workbegin code=13
+ITER_BEGIN t=13 tick=250668614000
+250668633000: global: pseudo_inst::dram_opt_enter(13, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=265545870000 cause=workend code=13
+ITER_END   t=13 tick=265545870000
+265545889000: global: DRAM opt exit workid: 13, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=265545919000 cause=workbegin code=14
+ITER_BEGIN t=14 tick=265545919000
+265545938000: global: pseudo_inst::dram_opt_enter(14, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=280423097000 cause=workend code=14
+ITER_END   t=14 tick=280423097000
+280423116000: global: DRAM opt exit workid: 14, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=280423146000 cause=workbegin code=15
+ITER_BEGIN t=15 tick=280423146000
+280423165000: global: pseudo_inst::dram_opt_enter(15, 0)
+DRAM OPT ON: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=295300285000 cause=workend code=15
+ITER_END   t=15 tick=295300285000
+295300304000: global: DRAM opt exit workid: 15, threadid 0
+DRAM OPT OFF: vaddr=404000 entryPaddr=3000 extent= 504000 inputAddr=7fffffffed70
+EXIT: tick=295300469000 cause=exiting with last active thread context code=0
+Program finished at tick 295300469000
