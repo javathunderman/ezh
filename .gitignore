@@ -15,3 +15,6 @@ workloads/fft_workload/fft
 workloads/pagerank_workload/m5out*
 workloads/*/__pycache__
 workloads/pagerank_workload/pagerank_pull
+workloads/amr_workload/*trace_riscv
+workloads/fft_workload/*trace_riscv
+workloads/graph_workloads/*trace_riscv

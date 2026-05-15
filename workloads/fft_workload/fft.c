@@ -176,7 +176,7 @@ int workload_main(void) {
 
     return 0;
 }
-
+#ifndef RISCV
 /* Raw Linux x86-64 exit syscall (syscall number 60) */
 static __attribute__((noreturn)) void sys_exit(int code) {
     __asm__ __volatile__(
@@ -188,6 +188,20 @@ static __attribute__((noreturn)) void sys_exit(int code) {
     );
     for (;;) { }
 }
+#endif
+#ifdef RISCV
+static __attribute__((noreturn)) void sys_exit(int code) {
+    __asm__ __volatile__(
+        "li a7, 93\n\t"       // syscall number for exit (93 on RISC-V Linux)
+        "mv a0, %0\n\t"       // move exit code into a0
+        "ecall\n\t"
+        :
+        : "r"((long)code)
+        : "a7", "a0", "memory"
+    );
+    for (;;) { }
+}
+#endif
 
 /* Program entry point — replaces CRT _start */
 __attribute__((visibility("default")))
