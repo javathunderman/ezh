@@ -146,6 +146,7 @@ int multilevel_coarsen(Graph levels[MAX_LEVELS]) {
 
 
 // Raw Linux x86-64 exit syscall
+#ifndef RISCV
 static __attribute__((noreturn)) void sys_exit(int code) {
     __asm__ __volatile__(
         "movq $60, %%rax\n\t"
@@ -156,6 +157,21 @@ static __attribute__((noreturn)) void sys_exit(int code) {
     );
     for (;;) { }
 }
+#endif
+
+#ifdef RISCV
+static __attribute__((noreturn)) void sys_exit(int code) {
+    __asm__ __volatile__(
+        "li a7, 93\n\t"       // syscall number for exit (93 on RISC-V Linux)
+        "mv a0, %0\n\t"       // move exit code into a0
+        "ecall\n\t"
+        :
+        : "r"((long)code)
+        : "a7", "a0", "memory"
+    );
+    for (;;) { }
+}
+#endif
 
 extern "C" void _start(void) {
     int num_nodes = 100000;
@@ -169,6 +185,6 @@ extern "C" void _start(void) {
     generate_graph(&levels[0], N, DEG);
 
     int last_level = multilevel_coarsen(levels);
-
+    
     sys_exit(0);
 }
