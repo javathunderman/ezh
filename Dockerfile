@@ -1,6 +1,6 @@
 FROM ubuntu:20.04
 ARG DEBIAN_FRONTEND=noninteractive
-### Stage 1 - add/remove packages ###
+
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
@@ -21,7 +21,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     python3-pip \
     cmake \
-    wget
+    wget \
+    g++-riscv64-linux-gnu
 
 RUN python3 -m pip install pydot
 RUN python3 -m pip install scons==3.1.2
@@ -32,6 +33,11 @@ RUN mkdir -p /mold && \
     cp -r mold-2.41.0-x86_64-linux/bin/* /usr/bin/ && \
     cp -r mold-2.41.0-x86_64-linux/lib/* /usr/lib/ && \
     cp -r mold-2.41.0-x86_64-linux/libexec/* /usr/libexec/
+RUN ln -s /usr/bin/riscv64-linux-gnu-gcc /usr/local/bin/riscv64-unknown-linux-gnu-gcc
+RUN ln -s /usr/bin/riscv64-linux-gnu-g++ /usr/local/bin/riscv64-unknown-linux-gnu-g++
+RUN ln -s /usr/bin/riscv64-linux-gnu-ar /usr/local/bin/riscv64-unknown-linux-gnu-ar
+RUN ln -s /usr/bin/riscv64-linux-gnu-as /usr/local/bin/riscv64-unknown-linux-gnu-as
+RUN ln -s /usr/bin/riscv64-linux-gnu-ld /usr/local/bin/riscv64-unknown-linux-gnu-ld
 WORKDIR /ezh
 RUN git config --global --add safe.directory /ezh
 RUN git config --global --add safe.directory /ezh/gem5
