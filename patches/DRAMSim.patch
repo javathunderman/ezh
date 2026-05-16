@@ -1,0 +1,682 @@
+diff --git a/.vscode/tasks.json b/.vscode/tasks.json
+index d750152..6e57496 100644
+--- a/.vscode/tasks.json
++++ b/.vscode/tasks.json
+@@ -1,12 +1,27 @@
+ {
+     // See https://go.microsoft.com/fwlink/?LinkId=733558
+     // for the documentation about the tasks.json format
+-    "version": "0.1.0",
++    "version": "2.0.0",
+     "command": "make",
+-    "isShellCommand": true,
+-    "args": ["-j5"],
+-    "showOutput": "always",
++    "args": [
++        "-j5"
++    ],
+     "options": {
+         "cwd": "${workspaceRoot}/build"
+-    }
++    },
++    "tasks": [
++        {
++            "label": "make",
++            "type": "shell",
++            "command": "make",
++            "args": [
++                "-j5"
++            ],
++            "problemMatcher": [],
++            "group": {
++                "_id": "build",
++                "isDefault": false
++            }
++        }
++    ]
+ }
+\ No newline at end of file
+diff --git a/configs/DDR4_8Gb_x8_3200_non_unified.ini b/configs/DDR4_8Gb_x8_3200_non_unified.ini
+new file mode 100644
+index 0000000..b4588a3
+--- /dev/null
++++ b/configs/DDR4_8Gb_x8_3200_non_unified.ini
+@@ -0,0 +1,67 @@
++[dram_structure]
++protocol = DDR4
++bankgroups = 4
++banks_per_group = 4
++rows = 65536
++columns = 1024
++device_width = 8
++BL = 8
++
++[timing]
++tCK = 0.63
++AL = 0
++CL = 22
++CWL = 16
++tRCD = 22
++tRP = 22
++tRAS = 52
++tRFC = 560
++tRFC2 = 416
++tRFC4 = 256
++tREFI = 12480
++tRPRE = 1
++tWPRE = 1
++tRRD_S = 4
++tRRD_L = 8
++tWTR_S = 4
++tWTR_L = 12
++tFAW = 34
++tWR = 24
++tWR2 = 25
++tRTP = 12
++tCCD_S = 4
++tCCD_L = 8
++tCKE = 8
++tCKESR = 9
++tXS = 576
++tXP = 10
++tRTRS = 1
++
++[power]
++VDD = 1.2
++IDD0 = 57
++IPP0 = 3.0
++IDD2P = 25
++IDD2N = 37
++IDD3P = 43
++IDD3N = 52
++IDD4W = 150
++IDD4R = 168
++IDD5AB = 250
++IDD6x = 30
++
++[system]
++channel_size = 16384
++channels = 1
++bus_width = 64
++address_mapping = rochrababgco
++queue_structure = PER_BANK
++refresh_policy = RANK_LEVEL_STAGGERED
++row_buf_policy = OPEN_PAGE
++cmd_queue_size = 8
++trans_queue_size = 32
++
++[other]
++epoch_period = 1587301
++output_level = 1
++unified_queue = 0
+diff --git a/configs/DDR4_8Gb_x8_3200_unified.ini b/configs/DDR4_8Gb_x8_3200_unified.ini
+new file mode 100644
+index 0000000..91b19d5
+--- /dev/null
++++ b/configs/DDR4_8Gb_x8_3200_unified.ini
+@@ -0,0 +1,67 @@
++[dram_structure]
++protocol = DDR4
++bankgroups = 4
++banks_per_group = 4
++rows = 65536
++columns = 1024
++device_width = 8
++BL = 8
++
++[timing]
++tCK = 0.63
++AL = 0
++CL = 22
++CWL = 16
++tRCD = 22
++tRP = 22
++tRAS = 52
++tRFC = 560
++tRFC2 = 416
++tRFC4 = 256
++tREFI = 12480
++tRPRE = 1
++tWPRE = 1
++tRRD_S = 4
++tRRD_L = 8
++tWTR_S = 4
++tWTR_L = 12
++tFAW = 34
++tWR = 24
++tWR2 = 25
++tRTP = 12
++tCCD_S = 4
++tCCD_L = 8
++tCKE = 8
++tCKESR = 9
++tXS = 576
++tXP = 10
++tRTRS = 1
++
++[power]
++VDD = 1.2
++IDD0 = 57
++IPP0 = 3.0
++IDD2P = 25
++IDD2N = 37
++IDD3P = 43
++IDD3N = 52
++IDD4W = 150
++IDD4R = 168
++IDD5AB = 250
++IDD6x = 30
++
++[system]
++channel_size = 16384
++channels = 1
++bus_width = 64
++address_mapping = rochrababgco
++queue_structure = PER_BANK
++refresh_policy = RANK_LEVEL_STAGGERED
++row_buf_policy = OPEN_PAGE
++cmd_queue_size = 8
++trans_queue_size = 32
++
++[other]
++epoch_period = 1587301
++output_level = 1
++unified_queue = 1
+diff --git a/src/common.cc b/src/common.cc
+index 5be3303..c7bc8bf 100644
+--- a/src/common.cc
++++ b/src/common.cc
+@@ -6,6 +6,10 @@
+ 
+ namespace dramsim3 {
+ 
++uint64_t g_buf_watchdog_cycles = 10000;  // set defaults
++bool g_buf_enabled = false;
++
++
+ std::ostream& operator<<(std::ostream& os, const Command& cmd) {
+     std::vector<std::string> command_string = {
+         "read",
+@@ -28,7 +32,7 @@ std::ostream& operator<<(std::ostream& os, const Command& cmd) {
+ 
+ std::ostream& operator<<(std::ostream& os, const Transaction& trans) {
+     const std::string trans_type = trans.is_write ? "WRITE" : "READ";
+-    os << fmt::format("{:<30} {:>8}", trans.addr, trans_type);
++    os << fmt::format("{:<30} {:>8} {:>8} {:>8} {:>8}", trans.addr, trans_type, trans.buf_uid, trans.buf_offset, trans.buf_stop);
+     return os;
+ }
+ 
+@@ -36,8 +40,10 @@ std::istream& operator>>(std::istream& is, Transaction& trans) {
+     std::unordered_set<std::string> write_types = {"WRITE", "write", "P_MEM_WR",
+                                                    "BOFF"};
+     std::string mem_op;
+-    is >> std::hex >> trans.addr >> mem_op >> std::dec >> trans.added_cycle;
++
++    is >> std::hex >> trans.addr >> mem_op >> std::dec >> trans.added_cycle >> trans.buf_uid >> trans.buf_offset >> trans.buf_stop;
+     trans.is_write = write_types.count(mem_op) == 1;
++  
+     return is;
+ }
+ 
+diff --git a/src/common.h b/src/common.h
+index 2f3f044..34fe66d 100644
+--- a/src/common.h
++++ b/src/common.h
+@@ -7,6 +7,10 @@
+ 
+ namespace dramsim3 {
+ 
++
++extern uint64_t my_counter;
++extern uint64_t rejected_counter;
++
+ struct Address {
+     Address()
+         : channel(-1), rank(-1), bankgroup(-1), bank(-1), row(-1), column(-1) {}
+@@ -110,20 +114,32 @@ struct Transaction {
+         : addr(addr),
+           added_cycle(0),
+           complete_cycle(0),
+-          is_write(is_write) {}
++          is_write(is_write),
++          buf_uid(0),
++          buf_offset(0),
++          buf_stop(false) {}
+     Transaction(const Transaction& tran)
+         : addr(tran.addr),
+           added_cycle(tran.added_cycle),
+           complete_cycle(tran.complete_cycle),
+-          is_write(tran.is_write) {}
++          is_write(tran.is_write),
++          buf_uid(tran.buf_uid),
++          buf_offset(tran.buf_offset),
++          buf_stop(tran.buf_stop) {}
+     uint64_t addr;
+     uint64_t added_cycle;
+     uint64_t complete_cycle;
+     bool is_write;
++    uint64_t buf_uid;       // unique ID
++    uint64_t buf_offset;    // used with addr to determine size
++    bool buf_stop;          // is this a stop block for this uid
+ 
+     friend std::ostream& operator<<(std::ostream& os, const Transaction& trans);
+     friend std::istream& operator>>(std::istream& is, Transaction& trans);
+ };
+ 
++    extern bool g_buf_enabled;
++    extern uint64_t g_buf_watchdog_cycles;
++
+ }  // namespace dramsim3
+ #endif
+diff --git a/src/controller.cc b/src/controller.cc
+index a582dcc..7f1781f 100644
+--- a/src/controller.cc
++++ b/src/controller.cc
+@@ -2,6 +2,7 @@
+ #include <iomanip>
+ #include <iostream>
+ #include <limits>
++#include <list>
+ 
+ namespace dramsim3 {
+ 
+@@ -141,6 +142,20 @@ void Controller::ClockTick() {
+         }
+     }
+ 
++    if(g_buf_enabled){
++        std::vector<uint64_t> evict;
++        for (auto &entry : block_enqueue_cycle_) {
++            if (clk_ - entry.second > g_buf_watchdog_cycles) {
++                evict.push_back(entry.first);
++            }
++        }
++        for (auto uid : evict) {
++            std::cerr << "Warning: buffer block uid=" << uid 
++                    << " evicted by watchdog at clk=" << clk_ << std::endl;
++            FlushBufferedBlock(uid);
++        }
++    }
++
+     ScheduleTransaction();
+     clk_++;
+     cmd_queue_.ClockTick();
+@@ -148,6 +163,45 @@ void Controller::ClockTick() {
+     return;
+ }
+ 
++void Controller::FlushBufferedBlock(uint64_t uid){
++    // Get the staged transactions
++    auto staged_it = staged_.find(uid);
++    if (staged_it == staged_.end()) return;
++
++    for (auto &trans : staged_it->second) {
++        if (trans.is_write) {
++            // add to write buf
++            if (pending_wr_q_.count(trans.addr) == 0) {
++
++                pending_wr_q_.insert({trans.addr, trans});
++
++                is_unified_queue_ ? unified_queue_.insert(unified_queue_.begin(), trans)
++                                : write_buffer_.insert(write_buffer_.begin(), trans);
++            }
++            trans.complete_cycle = clk_ + 1;
++            return_queue_.push_back(trans);
++        } else {
++            // add to read queue
++            if (pending_wr_q_.count(trans.addr) > 0) {
++                trans.complete_cycle = clk_ + 1;
++                return_queue_.push_back(trans);
++            } else {
++                pending_rd_q_.insert({trans.addr, trans});
++                if (pending_rd_q_.count(trans.addr) == 1) {
++
++                    is_unified_queue_ ? unified_queue_.insert(unified_queue_.begin(), trans)
++                                    : read_queue_.insert(read_queue_.begin(), trans);
++                }
++            }
++        }
++    }
++
++    // Clean up
++    active_blocks_.erase(uid);
++    staged_.erase(uid);
++    block_enqueue_cycle_.erase(uid);
++}
++
+ bool Controller::WillAcceptTransaction(uint64_t hex_addr, bool is_write) const {
+     if (is_unified_queue_) {
+         return unified_queue_.size() < unified_queue_.capacity();
+@@ -159,10 +213,68 @@ bool Controller::WillAcceptTransaction(uint64_t hex_addr, bool is_write) const {
+ }
+ 
+ bool Controller::AddTransaction(Transaction trans) {
++
+     trans.added_cycle = clk_;
+     simple_stats_.AddValue("interarrival_latency", clk_ - last_trans_clk_);
+     last_trans_clk_ = clk_;
+ 
++    // if(trans.buf_uid != 0){
++    //     std::cerr << "=== buf trans: uid=" << trans.buf_uid 
++    //             << " stop=" << trans.buf_stop 
++    //             << " addr=0x" << std::hex << trans.addr << std::dec
++    //             << " offset=" << trans.buf_offset
++    //             << " clk=" << clk_ << std::endl
++    //             << " channel=" << channel_id_ << std::endl;
++    //     std::cerr << "  active_blocks size=" << active_blocks_.size() << ": ";
++    //     for(auto &e : active_blocks_) std::cerr << "uid=" << e.first << " ";
++    //     std::cerr << std::endl;
++    //     std::cerr << "  pending_stops size=" << pending_stops_.size() << ": ";
++    //     for(auto &e : pending_stops_) std::cerr << e << " ";
++    //     std::cerr << std::endl;
++    // }
++
++    // Buffering logic -- Intercept transactions before they make it to a queue
++    if(g_buf_enabled){
++
++        if(trans.buf_uid != 0){
++
++            if(!trans.buf_stop){
++                // is start block
++                if(pending_stops_.count(trans.buf_uid)){
++                    // stop arrived, don't buffer
++                    pending_stops_.erase(trans.buf_uid);
++                } else {
++
++                    active_blocks_[trans.buf_uid] = trans;
++                    staged_[trans.buf_uid] = {trans}; // add trans for staged vec
++                    block_enqueue_cycle_[trans.buf_uid] = clk_;
++                    return true;
++                }
++            } else {
++                // is stop block
++                if(!active_blocks_.count(trans.buf_uid)){
++                    // start not arrived yet
++                    pending_stops_.insert(trans.buf_uid);
++                    return true;
++                }
++                // push stop transaction before flushing
++                staged_[trans.buf_uid].push_back(trans); 
++                FlushBufferedBlock(trans.buf_uid);
++                return true;
++            }
++        }
++
++        for (auto &entry : active_blocks_) {
++            const auto &block = entry.second;
++            if (trans.addr >= block.addr && trans.addr < block.addr + block.buf_offset) {
++                staged_[entry.first].push_back(trans);
++                return true;
++            }
++        }
++    }
++
++    // ---- end buffering logic ----
++
+     if (trans.is_write) {
+         if (pending_wr_q_.count(trans.addr) == 0) {  // can not merge writes
+             pending_wr_q_.insert(std::make_pair(trans.addr, trans));
+@@ -195,6 +307,7 @@ bool Controller::AddTransaction(Transaction trans) {
+ }
+ 
+ void Controller::ScheduleTransaction() {
++    
+     // determine whether to schedule read or write
+     if (write_draining_ == 0 && !is_unified_queue_) {
+         // we basically have a upper and lower threshold for write buffer
+@@ -207,8 +320,12 @@ void Controller::ScheduleTransaction() {
+     std::vector<Transaction> &queue =
+         is_unified_queue_ ? unified_queue_
+                           : write_draining_ > 0 ? write_buffer_ : read_queue_;
++
++    // do standard FCFS
+     for (auto it = queue.begin(); it != queue.end(); it++) {
++
+         auto cmd = TransToCommand(*it);
++
+         if (cmd_queue_.WillAcceptCommand(cmd.Rank(), cmd.Bankgroup(),
+                                          cmd.Bank())) {
+             if (!is_unified_queue_ && cmd.IsWrite()) {
+diff --git a/src/controller.h b/src/controller.h
+index 77bd6af..d6909ea 100644
+--- a/src/controller.h
++++ b/src/controller.h
+@@ -40,6 +40,10 @@ class Controller {
+     int channel_id_;
+ 
+    private:
++    
++    void FlushBufferedBlock(uint64_t uid);
++    
++
+     uint64_t clk_;
+     const Config &config_;
+     SimpleStats simple_stats_;
+@@ -47,6 +51,7 @@ class Controller {
+     CommandQueue cmd_queue_;
+     Refresh refresh_;
+ 
++
+ #ifdef THERMAL
+     ThermalCalculator &thermal_calc_;
+ #endif  // THERMAL
+@@ -57,6 +62,17 @@ class Controller {
+     std::vector<Transaction> read_queue_;
+     std::vector<Transaction> write_buffer_;
+ 
++    // Buffering data structures:
++    std::unordered_map<uint64_t, Transaction> active_blocks_;         // uid -> start transaction
++    std::unordered_map<uint64_t, std::vector<Transaction>> staged_;   // uid -> Held transactions
++    std::unordered_set<uint64_t> pending_stops_;                    // needed for completeness/assurance
++    std::unordered_map<uint64_t, uint64_t> block_enqueue_cycle_;    // uid -> clk_ at registration
++
++    // Buffering vars:
++    bool enable_buffering;
++    static constexpr uint64_t kBufWatchdogCycles = 10000;
++
++
+     // transactions that are not completed, use map for convenience
+     std::multimap<uint64_t, Transaction> pending_rd_q_;
+     std::multimap<uint64_t, Transaction> pending_wr_q_;
+diff --git a/src/cpu.cc b/src/cpu.cc
+index 175955f..d109417 100644
+--- a/src/cpu.cc
++++ b/src/cpu.cc
+@@ -70,6 +70,9 @@ TraceBasedCPU::TraceBasedCPU(const std::string& config_file,
+     }
+ }
+ 
++uint64_t my_counter = 0;
++uint64_t rejected_counter = 0;
++
+ void TraceBasedCPU::ClockTick() {
+     memory_system_.ClockTick();
+     if (!trace_file_.eof()) {
+@@ -81,7 +84,17 @@ void TraceBasedCPU::ClockTick() {
+             get_next_ = memory_system_.WillAcceptTransaction(trans_.addr,
+                                                              trans_.is_write);
+             if (get_next_) {
+-                memory_system_.AddTransaction(trans_.addr, trans_.is_write);
++                // memory_system_.AddTransaction(trans_.addr, trans_.is_write);
++                memory_system_.AddTransaction(trans_);
++                my_counter++;
++
++                if(trans_.buf_uid != 0) {
++                    std::cerr << "Submitting buffered trans uid=" << trans_.buf_uid 
++                            << " stop=" << trans_.buf_stop
++                            << " clk=" << clk_ << std::endl;
++                }
++            } else {
++               rejected_counter++;
+             }
+         }
+     }
+diff --git a/src/dram_system.cc b/src/dram_system.cc
+index 86f35f8..57e0324 100644
+--- a/src/dram_system.cc
++++ b/src/dram_system.cc
+@@ -144,6 +144,27 @@ bool JedecDRAMSystem::AddTransaction(uint64_t hex_addr, bool is_write) {
+     return ok;
+ }
+ 
++bool JedecDRAMSystem::AddTransaction(Transaction trans) {
++// Record trace - Record address trace for debugging or other purposes
++#ifdef ADDR_TRACE
++    address_trace_ << std::hex << trans.addr << std::dec << " "
++                   << (trans.is_write ? "WRITE " : "READ ") << clk_ << std::endl;
++#endif
++
++    // std::cerr << "JEDEC Transaction overload uid=" << trans.buf_uid << std::endl;
++
++    int channel = GetChannel(trans.addr);
++    bool ok = ctrls_[channel]->WillAcceptTransaction(trans.addr, trans.is_write);
++
++    assert(ok);
++    if (ok) {
++        ctrls_[channel]->AddTransaction(trans);
++    }
++    last_req_clk_ = clk_;
++    return ok;
++}
++
++
+ void JedecDRAMSystem::ClockTick() {
+     for (size_t i = 0; i < ctrls_.size(); i++) {
+         // look ahead and return earlier
+diff --git a/src/dram_system.h b/src/dram_system.h
+index 7864b2c..1bb94d3 100644
+--- a/src/dram_system.h
++++ b/src/dram_system.h
+@@ -31,6 +31,7 @@ class BaseDRAMSystem {
+     virtual bool WillAcceptTransaction(uint64_t hex_addr,
+                                        bool is_write) const = 0;
+     virtual bool AddTransaction(uint64_t hex_addr, bool is_write) = 0;
++    virtual bool AddTransaction(Transaction trans) = 0;
+     virtual void ClockTick() = 0;
+     int GetChannel(uint64_t hex_addr) const;
+ 
+@@ -66,6 +67,7 @@ class JedecDRAMSystem : public BaseDRAMSystem {
+     ~JedecDRAMSystem();
+     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const override;
+     bool AddTransaction(uint64_t hex_addr, bool is_write) override;
++    bool AddTransaction(Transaction trans) override;
+     void ClockTick() override;
+ };
+ 
+diff --git a/src/dramsim3.h b/src/dramsim3.h
+index 31a3c8a..f6d7ed1 100644
+--- a/src/dramsim3.h
++++ b/src/dramsim3.h
+@@ -25,6 +25,7 @@ class MemorySystem {
+ 
+     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const;
+     bool AddTransaction(uint64_t hex_addr, bool is_write);
++    bool AddTransaction(Transaction trans);
+ };
+ 
+ MemorySystem* GetMemorySystem(const std::string &config_file, const std::string &output_dir,
+diff --git a/src/hmc.cc b/src/hmc.cc
+index 5f5c23b..2a7a722 100644
+--- a/src/hmc.cc
++++ b/src/hmc.cc
+@@ -394,6 +394,12 @@ bool HMCMemorySystem::AddTransaction(uint64_t hex_addr, bool is_write) {
+     return InsertHMCReq(req);
+ }
+ 
++
++// Add to compile cleanly
++bool HMCMemorySystem::AddTransaction(Transaction trans) {
++    return AddTransaction(trans.addr, trans.is_write);
++}
++
+ bool HMCMemorySystem::InsertReqToLink(HMCRequest *req, int link) {
+     // These things need to happen when an HMC request is inserted to a link:
+     // 1. check if link queue full
+diff --git a/src/hmc.h b/src/hmc.h
+index f9900c6..01da693 100644
+--- a/src/hmc.h
++++ b/src/hmc.h
+@@ -116,6 +116,7 @@ class HMCMemorySystem : public BaseDRAMSystem {
+     // had to have 3 insert interfaces cuz HMC is so different...
+     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const override;
+     bool AddTransaction(uint64_t hex_addr, bool is_write) override;
++    bool AddTransaction(Transaction trans) override;
+     bool InsertReqToLink(HMCRequest* req, int link);
+     bool InsertHMCReq(HMCRequest* req);
+ 
+diff --git a/src/main.cc b/src/main.cc
+index 9ca252e..0911077 100644
+--- a/src/main.cc
++++ b/src/main.cc
+@@ -1,6 +1,7 @@
+ #include <iostream>
+ #include "./../ext/headers/args.hxx"
+ #include "cpu.h"
++#include "common.h"
+ 
+ using namespace dramsim3;
+ 
+@@ -28,6 +29,14 @@ int main(int argc, const char **argv) {
+     args::Positional<std::string> config_arg(
+         parser, "config", "The config file name (mandatory)");
+ 
++    args::Flag enable_buffering_arg(parser, "enable_buffering",
++        "Enable buffering optimization",
++        {"enable_buffering"});  
++
++    args::ValueFlag<uint64_t> WDTimer_arg(parser, "buffering_WDT",
++                            "Max clk ticks before flushing buffered data",
++                            {'w', "wd_timer"}, 10000);
++
+     try {
+         parser.ParseCLI(argc, argv);
+     } catch (args::Help) {
+@@ -49,6 +58,9 @@ int main(int argc, const char **argv) {
+     std::string output_dir = args::get(output_dir_arg);
+     std::string trace_file = args::get(trace_file_arg);
+     std::string stream_type = args::get(stream_arg);
++    
++    g_buf_enabled = args::get(enable_buffering_arg);
++    g_buf_watchdog_cycles = args::get(WDTimer_arg);
+ 
+     CPU *cpu;
+     if (!trace_file.empty()) {
+@@ -66,6 +78,10 @@ int main(int argc, const char **argv) {
+     }
+     cpu->PrintStats();
+ 
++    std::cout << std::endl << "Total transactions submitted: " << my_counter << std::endl;
++    std::cout << "Rejected transactions: " <<  rejected_counter << std::endl;
++
++
+     delete cpu;
+ 
+     return 0;
+diff --git a/src/memory_system.cc b/src/memory_system.cc
+index 739ea1a..48dc813 100644
+--- a/src/memory_system.cc
++++ b/src/memory_system.cc
+@@ -46,6 +46,11 @@ bool MemorySystem::AddTransaction(uint64_t hex_addr, bool is_write) {
+     return dram_system_->AddTransaction(hex_addr, is_write);
+ }
+ 
++bool MemorySystem::AddTransaction(Transaction trans) {
++    // std::cerr << "MemorySystem Transaction overload uid=" << trans.buf_uid << std::endl;
++    return dram_system_->AddTransaction(trans);
++}
++
+ void MemorySystem::PrintStats() const { dram_system_->PrintStats(); }
+ 
+ void MemorySystem::ResetStats() { dram_system_->ResetStats(); }
+diff --git a/src/memory_system.h b/src/memory_system.h
+index 57eeca1..c2cc0d0 100644
+--- a/src/memory_system.h
++++ b/src/memory_system.h
+@@ -29,6 +29,7 @@ class MemorySystem {
+ 
+     bool WillAcceptTransaction(uint64_t hex_addr, bool is_write) const;
+     bool AddTransaction(uint64_t hex_addr, bool is_write);
++    bool AddTransaction(Transaction trans);
+ 
+    private:
+     // These have to be pointers because Gem5 will try to push this object

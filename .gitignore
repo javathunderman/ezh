@@ -1,7 +1,7 @@
 build/
 
 # Remove m5 outputs and traces -- files too big
-workloads/graph_workloads/m5out*
+
 workloads/graph_workloads/*trace
 
 workloads/fft_workload/m5out*

@@ -1,0 +1,827 @@
+diff --git a/configs/example/riscv-se.py b/configs/example/riscv-se.py
+new file mode 100644
+index 0000000000..c614c04474
+--- /dev/null
++++ b/configs/example/riscv-se.py
+@@ -0,0 +1,320 @@
++# Copyright (c) 2012-2013 ARM Limited
++# All rights reserved.
++#
++# The license below extends only to copyright in the software and shall
++# not be construed as granting a license to any other intellectual
++# property including but not limited to intellectual property relating
++# to a hardware implementation of the functionality of the software
++# licensed hereunder.  You may use the software subject to the license
++# terms below provided that you ensure that this notice is replicated
++# unmodified and in its entirety in all distributions of the software,
++# modified or unmodified, in source code or in binary form.
++#
++# Copyright (c) 2006-2008 The Regents of The University of Michigan
++# All rights reserved.
++#
++# Redistribution and use in source and binary forms, with or without
++# modification, are permitted provided that the following conditions are
++# met: redistributions of source code must retain the above copyright
++# notice, this list of conditions and the following disclaimer;
++# redistributions in binary form must reproduce the above copyright
++# notice, this list of conditions and the following disclaimer in the
++# documentation and/or other materials provided with the distribution;
++# neither the name of the copyright holders nor the names of its
++# contributors may be used to endorse or promote products derived from
++# this software without specific prior written permission.
++#
++# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
++# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
++# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
++# A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
++# OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
++# SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
++# LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
++# DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
++# THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
++# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
++# OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
++
++# Simple test script
++#
++# "m5 test.py"
++
++import argparse
++import sys
++import os
++
++import m5
++from m5.defines import buildEnv
++from m5.objects import *
++from m5.params import NULL
++from m5.util import addToPath, fatal, warn
++
++addToPath('../')
++addToPath('./gem5/configs')
++
++
++# from ruby import Ruby
++
++from common import Options
++from common import Simulation
++from common import CacheConfig
++from common import CpuConfig
++from common import ObjectList
++from common import MemConfig
++from common.FileSystemConfig import config_filesystem
++from common.Caches import *
++from common.cpu2000 import *
++
++def get_processes(args):
++    """Interprets provided args and returns a list of processes"""
++
++    multiprocesses = []
++    inputs = []
++    outputs = []
++    errouts = []
++    pargs = []
++
++    workloads = args.cmd.split(';')
++    if args.input != "":
++        inputs = args.input.split(';')
++    if args.output != "":
++        outputs = args.output.split(';')
++    if args.errout != "":
++        errouts = args.errout.split(';')
++    if args.options != "":
++        pargs = args.options.split(';')
++
++    idx = 0
++    for wrkld in workloads:
++        process = Process(pid = 100 + idx)
++        process.executable = wrkld
++        process.cwd = os.getcwd()
++        process.gid = os.getgid()
++
++        if args.env:
++            with open(args.env, 'r') as f:
++                process.env = [line.rstrip() for line in f]
++
++        if len(pargs) > idx:
++            process.cmd = [wrkld] + pargs[idx].split()
++        else:
++            process.cmd = [wrkld]
++
++        if len(inputs) > idx:
++            process.input = inputs[idx]
++        if len(outputs) > idx:
++            process.output = outputs[idx]
++        if len(errouts) > idx:
++            process.errout = errouts[idx]
++
++        multiprocesses.append(process)
++        idx += 1
++
++    if args.smt:
++        assert(args.cpu_type == "DerivO3CPU")
++        return multiprocesses, idx
++    else:
++        return multiprocesses, 1
++
++
++parser = argparse.ArgumentParser()
++Options.addCommonOptions(parser)
++Options.addSEOptions(parser)
++
++if '--ruby' in sys.argv:
++    Ruby.define_options(parser)
++
++args = parser.parse_args()
++
++if not hasattr(args, 'l3cache'): # dummy simple soln
++    args.l3cache = False
++
++multiprocesses = []
++numThreads = 1
++
++if args.bench:
++    apps = args.bench.split("-")
++    if len(apps) != args.num_cpus:
++        print("number of benchmarks not equal to set num_cpus!")
++        sys.exit(1)
++
++    for app in apps:
++        try:
++            if buildEnv['TARGET_ISA'] == 'arm':
++                exec("workload = %s('arm_%s', 'linux', '%s')" % (
++                        app, args.arm_iset, args.spec_input))
++            else:
++                exec("workload = %s(buildEnv['TARGET_ISA', 'linux', '%s')" % (
++                        app, args.spec_input))
++            multiprocesses.append(workload.makeProcess())
++        except:
++            print("Unable to find workload for %s: %s" %
++                  (buildEnv['TARGET_ISA'], app),
++                  file=sys.stderr)
++            sys.exit(1)
++elif args.cmd:
++    multiprocesses, numThreads = get_processes(args)
++else:
++    print("No workload specified. Exiting!\n", file=sys.stderr)
++    sys.exit(1)
++
++
++(CPUClass, test_mem_mode, FutureClass) = Simulation.setCPUClass(args)
++CPUClass.numThreads = numThreads
++
++# Check -- do not allow SMT with multiple CPUs
++if args.smt and args.num_cpus > 1:
++    fatal("You cannot use SMT with multiple CPUs!")
++
++np = args.num_cpus
++mp0_path = multiprocesses[0].executable
++system = System(cpu = [CPUClass(cpu_id=i) for i in range(np)],
++                mem_mode = test_mem_mode,
++                mem_ranges = [AddrRange(args.mem_size)],
++                cache_line_size = args.cacheline_size)
++
++if numThreads > 1:
++    system.multi_thread = True
++
++# Create a top-level voltage domain
++system.voltage_domain = VoltageDomain(voltage = args.sys_voltage)
++
++# Create a source clock for the system and set the clock period
++system.clk_domain = SrcClockDomain(clock =  args.sys_clock,
++                                   voltage_domain = system.voltage_domain)
++
++# Create a CPU voltage domain
++system.cpu_voltage_domain = VoltageDomain()
++
++# Create a separate clock domain for the CPUs
++system.cpu_clk_domain = SrcClockDomain(clock = args.cpu_clock,
++                                       voltage_domain =
++                                       system.cpu_voltage_domain)
++
++# If elastic tracing is enabled, then configure the cpu and attach the elastic
++# trace probe
++if args.elastic_trace_en:
++    CpuConfig.config_etrace(CPUClass, system.cpu, args)
++
++# All cpus belong to a common cpu_clk_domain, therefore running at a common
++# frequency.
++for cpu in system.cpu:
++    cpu.clk_domain = system.cpu_clk_domain
++
++if ObjectList.is_kvm_cpu(CPUClass) or ObjectList.is_kvm_cpu(FutureClass):
++    if buildEnv['TARGET_ISA'] == 'x86':
++        system.kvm_vm = KvmVM()
++        system.m5ops_base = 0xffff0000
++        for process in multiprocesses:
++            process.useArchPT = True
++            process.kvmInSE = True
++    else:
++        fatal("KvmCPU can only be used in SE mode with x86")
++
++# Sanity check
++if args.simpoint_profile:
++    if not ObjectList.is_noncaching_cpu(CPUClass):
++        fatal("SimPoint/BPProbe should be done with an atomic cpu")
++    if np > 1:
++        fatal("SimPoint generation not supported with more than one CPUs")
++
++for i in range(np):
++    if args.smt:
++        system.cpu[i].workload = multiprocesses
++    elif len(multiprocesses) == 1:
++        system.cpu[i].workload = multiprocesses[0]
++    else:
++        system.cpu[i].workload = multiprocesses[i]
++
++    if args.simpoint_profile:
++        system.cpu[i].addSimPointProbe(args.simpoint_interval)
++
++    if args.checker:
++        system.cpu[i].addCheckerCpu()
++
++    if args.bp_type:
++        bpClass = ObjectList.bp_list.get(args.bp_type)
++        system.cpu[i].branchPred = bpClass()
++
++    if args.indirect_bp_type:
++        indirectBPClass = \
++            ObjectList.indirect_bp_list.get(args.indirect_bp_type)
++        system.cpu[i].branchPred.indirectBranchPred = indirectBPClass()
++
++    system.cpu[i].createThreads()
++
++if args.ruby:
++    Ruby.create_system(args, False, system)
++    assert(args.num_cpus == len(system.ruby._cpu_ports))
++
++    system.ruby.clk_domain = SrcClockDomain(clock = args.ruby_clock,
++                                        voltage_domain = system.voltage_domain)
++    for i in range(np):
++        ruby_port = system.ruby._cpu_ports[i]
++
++        # Create the interrupt controller and connect its ports to Ruby
++        # Note that the interrupt controller is always present but only
++        # in x86 does it have message ports that need to be connected
++        system.cpu[i].createInterruptController()
++
++        # Connect the cpu's cache ports to Ruby
++        ruby_port.connectCpuPorts(system.cpu[i])
++else:
++    MemClass = Simulation.setMemClass(args)
++    system.membus = SystemXBar()
++    system.system_port = system.membus.cpu_side_ports
++
++    for i in range(np):
++        system.cpu[i].createInterruptController()
++        # Removed for RISC-V
++        # system.cpu[i].interrupts[0].pio = system.membus.mem_side_ports
++        # system.cpu[i].interrupts[0].int_requestor = \
++        #     system.membus.cpu_side_ports
++        # system.cpu[i].interrupts[0].int_responder = \
++        #     system.membus.mem_side_ports
++
++    if not args.l3cache:
++        system.monitor = CommMonitor()
++        system.monitor.trace = MemTraceProbe(trace_file = "trace.ptrc.gz")
++        system.to_monitor_bus = L2XBar(clk_domain=system.cpu_clk_domain)
++        system.to_monitor_bus.mem_side_ports = system.monitor.cpu_side_port
++
++        for cpu in system.cpu:
++            cpu.icache_port = system.to_monitor_bus.cpu_side_ports
++            cpu.dcache_port = system.to_monitor_bus.cpu_side_ports
++        system.monitor.mem_side_port = system.membus.cpu_side_ports
++    else:
++        CacheConfig.config_cache_l3(args, system)
++    MemConfig.config_mem(args, system)
++    config_filesystem(system, args)
++
++system.workload = SEWorkload.init_compatible(mp0_path)
++
++if args.wait_gdb:
++    system.workload.wait_for_remote_gdb = True
++
++# root = Root(full_system = False, system = system)
++# Simulation.run(args, root, system, FutureClass)
++
++system.exit_on_work_items = True
++
++root = Root(full_system = False, system = system)
++m5.instantiate()
++
++print("Beginning simulation!")
++while True:
++    event = m5.simulate()
++    cause = event.getCause()
++    code = event.getCode()
++    tick = m5.curTick()
++
++    print(f"EXIT: tick={tick} cause={cause} code={code}")
++
++    if cause == "workbegin":
++        print(f"ITER_BEGIN t={code} tick={tick}")
++    elif cause == "workend":
++        print(f"ITER_END   t={code} tick={tick}")
++    elif "exiting with last active thread context" in cause:
++        print(f"Program finished at tick {tick}")
++        break
+diff --git a/configs/example/se.py b/configs/example/se.py
+index 3a8203da2e..e8681a2cfc 100644
+--- a/configs/example/se.py
++++ b/configs/example/se.py
+@@ -51,8 +51,10 @@ from m5.params import NULL
+ from m5.util import addToPath, fatal, warn
+ 
+ addToPath('../')
++addToPath('./gem5/configs')
+ 
+-from ruby import Ruby
++
++# from ruby import Ruby
+ 
+ from common import Options
+ from common import Simulation
+@@ -125,6 +127,9 @@ if '--ruby' in sys.argv:
+ 
+ args = parser.parse_args()
+ 
++if not hasattr(args, 'l3cache'): # dummy simple soln
++    args.l3cache = False
++
+ multiprocesses = []
+ numThreads = 1
+ 
+@@ -259,7 +264,27 @@ else:
+     MemClass = Simulation.setMemClass(args)
+     system.membus = SystemXBar()
+     system.system_port = system.membus.cpu_side_ports
+-    CacheConfig.config_cache(args, system)
++
++    for i in range(np):
++        system.cpu[i].createInterruptController()
++        system.cpu[i].interrupts[0].pio = system.membus.mem_side_ports
++        system.cpu[i].interrupts[0].int_requestor = \
++            system.membus.cpu_side_ports
++        system.cpu[i].interrupts[0].int_responder = \
++            system.membus.mem_side_ports
++
++    if not args.l3cache:
++        system.monitor = CommMonitor()
++        system.monitor.trace = MemTraceProbe(trace_file = "trace.ptrc.gz")
++        system.to_monitor_bus = L2XBar(clk_domain=system.cpu_clk_domain)
++        system.to_monitor_bus.mem_side_ports = system.monitor.cpu_side_port
++
++        for cpu in system.cpu:
++            cpu.icache_port = system.to_monitor_bus.cpu_side_ports
++            cpu.dcache_port = system.to_monitor_bus.cpu_side_ports
++        system.monitor.mem_side_port = system.membus.cpu_side_ports
++    else:
++        CacheConfig.config_cache_l3(args, system)
+     MemConfig.config_mem(args, system)
+     config_filesystem(system, args)
+ 
+@@ -268,5 +293,27 @@ system.workload = SEWorkload.init_compatible(mp0_path)
+ if args.wait_gdb:
+     system.workload.wait_for_remote_gdb = True
+ 
++# root = Root(full_system = False, system = system)
++# Simulation.run(args, root, system, FutureClass)
++
++system.exit_on_work_items = True
++
+ root = Root(full_system = False, system = system)
+-Simulation.run(args, root, system, FutureClass)
++m5.instantiate()
++
++print("Beginning simulation!")
++while True:
++    event = m5.simulate()
++    cause = event.getCause()
++    code = event.getCode()
++    tick = m5.curTick()
++
++    print(f"EXIT: tick={tick} cause={cause} code={code}")
++
++    if cause == "workbegin":
++        print(f"ITER_BEGIN t={code} tick={tick}")
++    elif cause == "workend":
++        print(f"ITER_END   t={code} tick={tick}")
++    elif "exiting with last active thread context" in cause:
++        print(f"Program finished at tick {tick}")
++        break
+diff --git a/include/gem5/asm/generic/m5ops.h b/include/gem5/asm/generic/m5ops.h
+index 9bd10e07f0..e34e90c180 100644
+--- a/include/gem5/asm/generic/m5ops.h
++++ b/include/gem5/asm/generic/m5ops.h
+@@ -67,9 +67,9 @@
+ #define M5OP_ADD_SYMBOL         0x53
+ #define M5OP_PANIC              0x54
+ 
+-#define M5OP_RESERVED1          0x55 // Reserved for user, used to be annotate
+-#define M5OP_RESERVED2          0x56 // Reserved for user
+-#define M5OP_RESERVED3          0x57 // Reserved for user
++#define M5OP_DRAM_OPT           0x55
++#define M5OP_DRAM_OPT_ENTER     0x56
++#define M5OP_DRAM_OPT_EXIT      0x57
+ #define M5OP_RESERVED4          0x58 // Reserved for user
+ #define M5OP_RESERVED5          0x59 // Reserved for user
+ 
+@@ -108,6 +108,9 @@
+     M5OP(m5_work_end, M5OP_WORK_END)                            \
+     M5OP(m5_dist_toggle_sync, M5OP_DIST_TOGGLE_SYNC)            \
+     M5OP(m5_workload, M5OP_WORKLOAD)                            \
++    M5OP(m5_dram_opt, M5OP_DRAM_OPT)                            \
++    M5OP(m5_dram_opt_enter, M5OP_DRAM_OPT_ENTER)                \
++    M5OP(m5_dram_opt_exit, M5OP_DRAM_OPT_EXIT)                  \
+ 
+ #define M5OP_MERGE_TOKENS_I(a, b) a##b
+ #define M5OP_MERGE_TOKENS(a, b) M5OP_MERGE_TOKENS_I(a, b)
+diff --git a/include/gem5/m5ops.h b/include/gem5/m5ops.h
+index 7e12c70dd0..4dbe9c350f 100644
+--- a/include/gem5/m5ops.h
++++ b/include/gem5/m5ops.h
+@@ -66,6 +66,11 @@ void m5_load_symbol();
+ void m5_panic(void);
+ void m5_work_begin(uint64_t workid, uint64_t threadid);
+ void m5_work_end(uint64_t workid, uint64_t threadid);
++void m5_dram_opt(uint64_t workid, uint64_t threadid);
++void m5_dram_opt_enter(uint64_t workid, uint64_t threadid, \
++    void *ptr, uint64_t size);
++void m5_dram_opt_exit(uint64_t workid, uint64_t threadid, \
++    void *ptr, uint64_t size);
+ 
+ /*
+  * Send a very generic poke to the workload so it can do something. It's up to
+diff --git a/src/cpu/simple/atomic.cc b/src/cpu/simple/atomic.cc
+old mode 100644
+new mode 100755
+index 9cf7a294b9..7f5bd0608b
+--- a/src/cpu/simple/atomic.cc
++++ b/src/cpu/simple/atomic.cc
+@@ -392,7 +392,75 @@ AtomicSimpleCPU::readMem(Addr addr, uint8_t *data, unsigned size,
+             fault = thread->mmu->translateAtomic(req, thread->getTC(),
+                                                  BaseMMU::Read);
+         }
++        if (thread->dramOptHintEnable) {
++            req->setFlags(Request::DRAM_OPT_HINT_ON);
++            for (const auto& [vaddr, val] : thread->stream_ids) {
++                Addr entryPaddr = 0;
++                bool translated = thread->getProcessPtr()->\
++                    pTable->translate(vaddr, entryPaddr);
++                if (translated) {
++                    std::cout << "DRAM OPT ON: vaddr=" << std::hex << vaddr
++                        << " entryPaddr=" << entryPaddr
++                        << " extent= " << (vaddr + val.second)
++                        << " inputAddr=" << addr << std::dec << std::endl;
++                    if (addr < (vaddr + val.second)) {
++                        std::cout << "match found, assign stream ID: " \
++                            << val.first << std::endl;
++                        req->setOptStreamId(val.first);
++                        req->setStreamSize(val.second);
++                        break;
++                    }
+ 
++                }
++            }
++        }
++        if (thread->dramOptHintDisable) {
++            req->setFlags(Request::DRAM_OPT_HINT_OFF);
++
++            uint64_t map_res = 0;
++            for (const auto& [vaddr, val] : thread->stream_ids) {
++                Addr entryPaddr = 0;
++                bool translated = thread->getProcessPtr()->\
++                    pTable->translate(vaddr, entryPaddr);
++                if (translated) {
++                    std::cout << "DRAM OPT OFF: vaddr=" << std::hex << vaddr
++                        << " entryPaddr=" << entryPaddr
++                        << " extent= " << (vaddr + val.second)
++                        << " inputAddr=" << addr << std::dec << std::endl;
++                    if (addr < (vaddr + val.second)) {
++                        std::cout << "match found, assign stream ID: "\
++                         << val.first << std::endl;
++                        req->setOptStreamId(val.first);
++                        req->setStreamSize(val.second);
++                        map_res = vaddr;
++                        break;
++                    }
++                } else {
++                    std::cout << "DRAM OPT OFF: Address translation \
++                    failed! vaddr=" << std::hex << vaddr
++                        << " entryPaddr=" << entryPaddr
++                        << " extent= " << (vaddr + val.second)
++                        << " inputAddr=" << addr << std::dec << std::endl;
++                }
++            }
++            if (map_res != 0) {
++                thread->stream_ids.erase(map_res);
++            }
++        }
++        if (!thread->dramOptHintDisable && \
++                !thread->dramOptHintEnable) {
++            // if neither flag was set,
++            // clear the bit flags and set the stream ID to 0
++            req->clearFlags(Request::DRAM_OPT_HINT_OFF);
++            req->clearFlags(Request::DRAM_OPT_HINT_ON);
++            req->setOptStreamId((uint64_t) 0);
++        }
++        if (thread->dramOptHintDisable || \
++            thread->dramOptHintEnable) {
++            // clear flags for future packets
++            thread->dramOptHintDisable = false;
++            thread->dramOptHintEnable = false;
++        }
+         // Now do the access.
+         if (predicate && fault == NoFault &&
+             !req->getFlags().isSet(Request::NO_ACCESS)) {
+diff --git a/src/cpu/simple_thread.hh b/src/cpu/simple_thread.hh
+index 1de5b370ae..89c027ba3c 100644
+--- a/src/cpu/simple_thread.hh
++++ b/src/cpu/simple_thread.hh
+@@ -96,7 +96,11 @@ class SimpleThread : public ThreadState, public ThreadContext
+ {
+   public:
+     typedef ThreadContext::Status Status;
+-
++    bool dramOptHintEnable = false;
++    bool dramOptHintDisable = false;
++    unsigned int opt_stream_id = 1;
++    std::unordered_map<uint64_t, std::pair<unsigned int, uint64_t>> stream_ids;
++    // key is vaddr, val is stream ID (first) and size (second)
+   protected:
+     std::array<RegFile, CCRegClass + 1> regFiles;
+ 
+diff --git a/src/mem/probes/mem_trace.cc b/src/mem/probes/mem_trace.cc
+index a470d70291..f5dc2cdcff 100644
+--- a/src/mem/probes/mem_trace.cc
++++ b/src/mem/probes/mem_trace.cc
+@@ -120,6 +120,10 @@ MemTraceProbe::handleRequest(const probing::PacketInfo &pkt_info)
+     if (withPC && pkt_info.pc != 0)
+         pkt_msg.set_pc(pkt_info.pc);
+     pkt_msg.set_pkt_id(pkt_info.id);
++    pkt_msg.set_opt_stream_id(pkt_info.opt_stream_id);
++    if (pkt_info.flags & 0x00004000 || pkt_info.flags & 0x00020000) {
++        pkt_msg.set_stream_size(pkt_info.stream_size);
++    }
+ 
+     traceStream->write(pkt_msg);
+ }
+diff --git a/src/mem/request.hh b/src/mem/request.hh
+index 39d9d7281c..bcc89f6870 100644
+--- a/src/mem/request.hh
++++ b/src/mem/request.hh
+@@ -135,6 +135,8 @@ class Request
+         STRICT_ORDER                = 0x00000800,
+         /** This request is made in privileged mode. */
+         PRIVILEGED                  = 0x00008000,
++        DRAM_OPT_HINT_ON            = 0x00004000,
++        DRAM_OPT_HINT_OFF           = 0x00020000,
+ 
+         /**
+          * This is a write that is targeted and zeroing an entire
+@@ -444,6 +446,8 @@ class Request
+ 
+     /** The virtual address of the request. */
+     Addr _vaddr = MaxAddr;
++    uint64_t stream_size = 0;
++    uint64_t opt_stream_id = 1;
+ 
+     /**
+      * Extra data for the request, such as the return value of
+@@ -836,6 +840,30 @@ class Request
+         return _vaddr;
+     }
+ 
++    uint64_t
++    getStreamSize()
++    {
++        return stream_size;
++    }
++
++    uint64_t
++    getOptStreamId()
++    {
++        return opt_stream_id;
++    }
++
++    void
++    setStreamSize(uint64_t s_size)
++    {
++        stream_size = s_size;
++    }
++
++    void
++    setOptStreamId(uint64_t s_id)
++    {
++        opt_stream_id = s_id;
++    }
++
+     /** Accesssor for the requestor id. */
+     RequestorID
+     requestorId() const
+@@ -1002,6 +1030,8 @@ class Request
+ 
+     /** Accessor functions for flags. Note that these are for testing
+         only; setting flags should be done via setFlags(). */
++    bool isDramOptHintOn() const { return _flags.isSet(DRAM_OPT_HINT_ON); }
++    bool isDramOptHintOff() const { return _flags.isSet(DRAM_OPT_HINT_OFF); }
+     bool isUncacheable() const { return _flags.isSet(UNCACHEABLE); }
+     bool isStrictlyOrdered() const { return _flags.isSet(STRICT_ORDER); }
+     bool isInstFetch() const { return _flags.isSet(INST_FETCH); }
+diff --git a/src/proto/packet.proto b/src/proto/packet.proto
+index e8536f2b6e..759f3506ed 100644
+--- a/src/proto/packet.proto
++++ b/src/proto/packet.proto
+@@ -75,4 +75,6 @@ message Packet {
+   optional uint32 flags = 5;
+   optional uint64 pkt_id = 6;
+   optional uint64 pc = 7;
++  optional uint64 opt_stream_id = 8;
++  optional uint64 stream_size = 9;
+ }
+diff --git a/src/sim/SConscript b/src/sim/SConscript
+index 969a3e439c..afb8039574 100644
+--- a/src/sim/SConscript
++++ b/src/sim/SConscript
+@@ -141,5 +141,6 @@ DebugFlag('VoltageDomain')
+ DebugFlag('DVFS')
+ DebugFlag('Vma')
+ DebugFlag('PowerDomain')
++DebugFlag('DRAMOpt')
+ 
+ CompoundFlag('SyscallAll', [ 'SyscallBase', 'SyscallVerbose'])
+diff --git a/src/sim/probe/mem.hh b/src/sim/probe/mem.hh
+index df3280cfc9..3a032e429e 100644
+--- a/src/sim/probe/mem.hh
++++ b/src/sim/probe/mem.hh
+@@ -63,6 +63,8 @@ struct PacketInfo
+     Request::FlagsType flags;
+     Addr pc;
+     RequestorID id;
++    uint64_t opt_stream_id;
++    uint64_t stream_size;
+ 
+     explicit PacketInfo(const PacketPtr& pkt) :
+         cmd(pkt->cmd),
+@@ -70,7 +72,9 @@ struct PacketInfo
+         size(pkt->getSize()),
+         flags(pkt->req->getFlags()),
+         pc(pkt->req->hasPC() ? pkt->req->getPC() : 0),
+-        id(pkt->req->requestorId())  { }
++        id(pkt->req->requestorId()),
++        opt_stream_id(pkt->req->getOptStreamId()),
++        stream_size(pkt->req->getStreamSize())  { }
+ };
+ 
+ /**
+diff --git a/src/sim/pseudo_inst.cc b/src/sim/pseudo_inst.cc
+index b3c1f4edb5..577231ea4a 100644
+--- a/src/sim/pseudo_inst.cc
++++ b/src/sim/pseudo_inst.cc
+@@ -51,10 +51,13 @@
+ #include <string>
+ #include <vector>
+ 
++#include "arch/generic/mmu.hh"
+ #include "base/debug.hh"
+ #include "base/output.hh"
+ #include "cpu/base.hh"
++#include "cpu/simple_thread.hh"
+ #include "cpu/thread_context.hh"
++#include "debug/DRAMOpt.hh"
+ #include "debug/Loader.hh"
+ #include "debug/Quiesce.hh"
+ #include "debug/WorkItems.hh"
+@@ -594,6 +597,52 @@ workend(ThreadContext *tc, uint64_t workid, uint64_t threadid)
+         }
+     }
+ }
+-
++void
++dram_opt(ThreadContext *tc, uint64_t workid, uint64_t threadid)
++{
++    std::cout << "hello from inside dram_opt" << std::endl;
++    DPRINTF(DRAMOpt, "DRAM opt workid: %d, threadid %d\n", workid, \
++            threadid);
++    static std::ofstream markerLog("m5out/dram_opt_markers.txt");
++    markerLog << curTick() << ": DRAM_Opt called\n";
++    markerLog.flush();
++}
++void
++dram_opt_enter(ThreadContext *tc, uint64_t workid, uint64_t threadid, \
++    Addr vaddr, uint64_t size)
++{
++    DPRINTF(DRAMOpt, "pseudo_inst::dram_opt_enter(%i, %i)\n", \
++        workid, threadid);
++        static std::ofstream markerLog("m5out/dram_opt_markers_enter.txt");
++        markerLog << curTick() << ": DRAM_Opt_Enter called\n";
++        markerLog.flush();
++    SimpleThread *thread = dynamic_cast<SimpleThread *>(tc->getCpuPtr()->\
++                                            getContext(tc->threadId()));
++    if (thread) {
++        thread->dramOptHintEnable = true;
++        thread->dramOptHintDisable = false;
++
++        thread->stream_ids.emplace(vaddr, \
++            std::make_pair(thread->opt_stream_id, size));
++        thread->opt_stream_id++;
++    }
++}
++void
++dram_opt_exit(ThreadContext *tc, uint64_t workid, uint64_t threadid, \
++    Addr vaddr, uint64_t size)
++{
++    DPRINTF(DRAMOpt, "DRAM opt exit workid: %d, threadid %d\n", workid,
++            threadid);
++    static std::ofstream markerLog("m5out/dram_opt_markers_exit.txt");
++    markerLog << curTick() << ": DRAM_Opt_Exit called\n";
++    markerLog.flush();
++    SimpleThread *thread = dynamic_cast<SimpleThread *>(tc->getCpuPtr()->\
++                                                getContext(tc->threadId()));
++    if (thread) {
++        thread->dramOptHintEnable = false;
++        thread->dramOptHintDisable = true;
++        // std::cout << "unsetting hint" << std::endl;
++    }
++}
+ } // namespace pseudo_inst
+ } // namespace gem5
+diff --git a/src/sim/pseudo_inst.hh b/src/sim/pseudo_inst.hh
+index 4794a41ffe..1d98c0335b 100644
+--- a/src/sim/pseudo_inst.hh
++++ b/src/sim/pseudo_inst.hh
+@@ -92,6 +92,11 @@ void debugbreak(ThreadContext *tc);
+ void switchcpu(ThreadContext *tc);
+ void workbegin(ThreadContext *tc, uint64_t workid, uint64_t threadid);
+ void workend(ThreadContext *tc, uint64_t workid, uint64_t threadid);
++void dram_opt(ThreadContext *tc, uint64_t workid, uint64_t threadid);
++void dram_opt_enter(ThreadContext *tc, uint64_t workid, \
++  uint64_t threadid, Addr vaddr, uint64_t size);
++void dram_opt_exit(ThreadContext *tc, uint64_t workid, \
++  uint64_t threadid, Addr vaddr, uint64_t size);
+ void m5Syscall(ThreadContext *tc);
+ void togglesync(ThreadContext *tc);
+ void triggerWorkloadEvent(ThreadContext *tc);
+@@ -214,9 +219,15 @@ pseudoInstWork(ThreadContext *tc, uint8_t func, uint64_t &result)
+         invokeSimcall<ABI>(tc, workend);
+         return true;
+ 
+-      case M5OP_RESERVED1:
+-      case M5OP_RESERVED2:
+-      case M5OP_RESERVED3:
++      case M5OP_DRAM_OPT:
++        invokeSimcall<ABI>(tc, dram_opt);
++        return true;
++      case M5OP_DRAM_OPT_ENTER:
++        invokeSimcall<ABI>(tc, dram_opt_enter);
++        return true;
++      case M5OP_DRAM_OPT_EXIT:
++        invokeSimcall<ABI>(tc, dram_opt_exit);
++        return true;
+       case M5OP_RESERVED4:
+       case M5OP_RESERVED5:
+         warn("Unimplemented m5 op (%#x)\n", func);
+diff --git a/util/decode_packet_trace.py b/util/decode_packet_trace.py
+index 21d7f9a157..a57bbd6b34 100755
+--- a/util/decode_packet_trace.py
++++ b/util/decode_packet_trace.py
+@@ -85,7 +85,6 @@ def main():
+ 
+     num_packets = 0
+     packet = packet_pb2.Packet()
+-
+     # Decode the packet messages until we hit the end of the file
+     while protolib.decodeMessage(proto_in, packet):
+         num_packets += 1
+@@ -93,9 +92,22 @@ def main():
+         cmd = 'r' if packet.cmd == 1 else ('w' if packet.cmd == 4 else 'u')
+         if packet.HasField('pkt_id'):
+             ascii_out.write('%s,' % (packet.pkt_id))
++        opt_hint_out = ""
+         if packet.HasField('flags'):
+-            ascii_out.write('%s,%s,%s,%s,%s' % (cmd, packet.addr, packet.size,
+-                            packet.flags, packet.tick))
++            opt_flag = (bool(packet.flags & 0x00004000) or \
++                bool(packet.flags & 0x00020000)) \
++                and not bool(packet.flags & 0x00000100)
++            if opt_flag:
++                print(packet.tick)
++                opt_hint_out += "," + str(packet.stream_size)
++            ascii_out.write('%s,%s,%s,%s,%s,%s%s' % (cmd, packet.addr, \
++                            packet.size,
++                            packet.flags, \
++                            packet.tick, \
++                            packet.opt_stream_id \
++                                if (opt_flag) else '0', \
++                                "," + str((packet.flags & 0x00020000) >> 17) \
++                                + opt_hint_out))
+         else:
+             ascii_out.write('%s,%s,%s,%s' % (cmd, packet.addr, packet.size,
+                                            packet.tick))
+@@ -104,6 +116,7 @@ def main():
+         else:
+             ascii_out.write('\n')
+ 
++
+     print("Parsed packets:", num_packets)
+ 
+     # We're done
